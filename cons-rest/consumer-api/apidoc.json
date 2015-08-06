@@ -1,0 +1,7 @@
+{
+    "name": "ConsumerAPI",
+    "version": "0.1.0",
+    "description": "Grocery Consumer API",
+    "title": "Consumer API",
+    "url" : "http://localhost:3000/api/v1"
+}
