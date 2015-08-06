@@ -23,16 +23,34 @@ app.set('view engine', 'jade');
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 
-app.use(function (req, res, next) {
+/*app.use(function (req, res, next) {
   req.config = config;
   var changeCase = require('change-case');
-  console.log(changeCase.camelCase('m_consumers'));
-  console.log(changeCase.camelCase('created_by'));
-  console.log(changeCase.snakeCase('mConsumers'));
-  console.log(changeCase.snakeCase('createdBySenthil'));
-  console.log(Object.keys({hello:'world', comeon:'good', 1:'hello'}));
+  var arr = ['id',
+    'primary_mobile_no',
+    'alt_mobile_no',
+    'email',
+    'verified',
+    'gen_pin',
+    'status',
+    'attempt_count',
+    'uuid',
+    'overall_save',
+    'last_redeem',
+    'savings_balance',
+    'last_accessed_channel',
+    'created_channel',
+    'created_date',
+    'created_by',
+    'updated_by',
+    'updated_date',
+    'last_logged_in'];
+  for(var i=0; i<arr.length; i++){
+    console.log(changeCase.upperCase(arr[i]) + ' : \''+arr[i]+'\',');
+  }
+
   next();
-});
+});*/
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -61,9 +79,13 @@ if (app.get('env') === 'development') {
     if(err.status === 200){
       res.status(err.status);
       res.json({errors:err});
+      return;
     } else {
       res.status(err.status || 500);
-      res.json(err);
+      res.render('error', {
+        message: err.message,
+        error: err.details
+      });
     }
   });
 }

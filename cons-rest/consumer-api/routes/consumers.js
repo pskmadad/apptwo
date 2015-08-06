@@ -4,12 +4,9 @@
 var express = require('express');
 var router = express.Router();
 var Model = require('../models/consumerModel').Consumer;
-var InternalServerError = require('../models/errorModel').InternalServerError();
-var DB = require('../lib/DB').DB;
-var db = new DB();
+var InternalServerError = require('../models/errorModel').InternalServerError;
 var logger = require('../lib/logger').logger;
 
-var tableName = 'm_consumers';
 /**
  * @api {get} /consumers/:id/savings Request to retrieve savings information for a user
  * @apiName GetConsumerSavings
@@ -22,7 +19,7 @@ var tableName = 'm_consumers';
  *
  */
 router.get('/:id/savings', function(req, res, next) {
-    res.json({test:'success'});
+    res.json({test: 'success'});
 });
 
 /**
@@ -39,7 +36,7 @@ router.get('/:id/savings', function(req, res, next) {
  *
  */
 router.get('/:id/orders', function(req, res, next) {
-    res.json({test:'success'});
+    res.json({test: 'success'});
 });
 
 /**
@@ -56,7 +53,7 @@ router.get('/:id/orders', function(req, res, next) {
  *
  */
 router.get('/:id', function(req, res, next) {
-    res.json({test:'success'});
+    res.json({test: 'success'});
 });
 
 /**
@@ -76,16 +73,16 @@ router.get('/:id', function(req, res, next) {
  */
 router.post('/', function(req, res, next) {
     var model = new Model(req);
-    model.validate();
-    db.create(function(err, result){
-      console.log(err);
-      if(err){
-        next(InternalServerError);
-        return;
-      }
-      model.id = result;
-      res.json(model);
-    }, 'INSERT INTO '+tableName+' SET ?', model.toDBObject());
+    model.executeCreateCustomer(function(err, result) {
+        logger.error(err);
+        if(err) {
+            next(InternalServerError(err));
+            return;
+        }
+        var consumer = model.toObj();
+        consumer.id = result;
+        res.json(consumer);
+    });
 });
 
 /**
@@ -105,7 +102,7 @@ router.post('/', function(req, res, next) {
  *
  */
 router.put('/:id', function(req, res, next) {
-    res.json({test:'success'});
+    res.json({test: 'success'});
 });
 
 module.exports = router;

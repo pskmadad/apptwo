@@ -2,45 +2,46 @@
  * Created by svaithiyanathan on 8/4/15.
  */
 
-var GenericError = function(code, field, message){
+var GenericError = function(code, field, message) {
     this.field = field;
     this.code = code;
     this.message = message;
 }
 
-var MissingParamError = function(field){
+var MissingParamError = function(field) {
     this.field = field;
     this.code = 400;
     this.message = 'Missing Parameter';
 }
 
-var InvalidValueError = function(field){
+var InvalidValueError = function(field) {
     this.field = field;
     this.code = 412;
     this.message = 'Invalid Value';
 }
 
-var InvalidSizeError = function(field){
+var InvalidSizeError = function(field) {
     this.field = field;
     this.code = 412;
     this.message = 'Invalid field size';
 }
 
-var InternalServerError = function(){
-  return {
-    message : 'Internal Server Error',
-    status : 500
-  };
+var InternalServerError = function(err) {
+    return {
+        message: 'Internal Server Error',
+        status: 500,
+        details: err
+    };
 }
 
-var Errors = function(){
-  this.all = [];
-  this.hasError = false;
-  this.status = 200;
-  this.add = function(error){
-      this.hasError = true;
-      this.all.push(error);
-  }
+var Errors = function() {
+    this.all = [];
+    this.hasError = false;
+    this.status = 200;
+    this.add = function(error) {
+        this.hasError = true;
+        this.all.push(error);
+    }
 }
 
 module.exports.GenericError = GenericError;

@@ -20,7 +20,7 @@ var router = express.Router();
  */
 router.get('/predefinedList', function(req, res, next) {
 
-    res.json({test:'success'});
+    res.json({test: 'success'});
 });
 
 /**
@@ -39,7 +39,7 @@ router.get('/predefinedList', function(req, res, next) {
  *
  */
 router.get('/', function(req, res, next) {
-    res.json({test:'success'});
+    res.json({test: 'success'});
 });
 
 module.exports = router;

@@ -3,85 +3,101 @@
  */
 
 var validator = require('validator');
-var Errors = require('../models/errorModel').Errors;
-var MissingParamError = require('../models/errorModel').MissingParamError;
-var InvalidValueError = require('../models/errorModel').InvalidValueError;
-var InvalidSizeError = require('../models/errorModel').InvalidSizeError;
+var Errors = require('./errorModel').Errors;
+var MissingParamError = require('./errorModel').MissingParamError;
+var InvalidValueError = require('./errorModel').InvalidValueError;
+var InvalidSizeError = require('./errorModel').InvalidSizeError;
+var req2Domain = require('../lib/mapper').req2Domain;
+var logger = require('../lib/logger').logger;
+var DB = require('../lib/DB').DB;
+var db = new DB();
 
-var API_DB_MAPPER = {
-    MOBILE_NUMBER : ['mobileNo', 'primary_mobile_no'],  //Nullable
-    ALT_MOBILE_NUMBER : ['altMobileNo', 'alt_mobile_no'], //Nullable
-    CHANNEL : ['channel','created_channel'],
-    UUID : ['uuid', 'uuid'], //Nullable
-    EMAIL : ['email', 'email'], //Nullable
-    VERIFIED : ['verified', 'verified'],
-    GENERATED_PIN : [null, 'gen_pin'],
-    STATUS : [null, 'status'],
-    ATTEMPT_COUNT : [null, 'attempt_count'],
-    OVERALL_SAVE : [null, 'overall_save'],
-    LAST_REDEEM_DATE : [null, 'last_redeem'], //Nullable
-    SAVINGS_BALANCE : [null, 'savings_balance'],
-    LAST_ACCESSED_CHANNEL : ['channel', 'last_accessed_channel'],
-    CREATED_DATE : [null, 'created_date'],
-    CREATED_BY : ['user', 'created_by'],
-    UPDATED_BY : ['user', 'updated_by'],
-    UPDATED_DATE : [null, 'updated_date'],
-    LAST_LOGGED_IN : [null,'last_logged_in']
+var TABLE_NAME = 'm_consumers';
+
+var API_MAPPER = {
+    ID: 'id',
+    PRIMARY_MOBILE_NO: 'primary_mobile_no',
+    ALT_MOBILE_NO: 'alt_mobile_no',
+    EMAIL: 'email',
+    VERIFIED: 'verified',
+    GEN_PIN: 'gen_pin',
+    STATUS: 'status',
+    ATTEMPT_COUNT: 'attempt_count',
+    UUID: 'uuid',
+    OVERALL_SAVE: 'overall_save',
+    LAST_REDEEM: 'last_redeem',
+    SAVINGS_BALANCE: 'savings_balance',
+    LAST_ACCESSED_CHANNEL: 'last_accessed_channel',
+    CREATED_CHANNEL: 'created_channel',
+    CREATED_DATE: 'created_date',
+    CREATED_BY: 'created_by',
+    UPDATED_BY: 'updated_by',
+    UPDATED_DATE: 'updated_date',
+    LAST_LOGGED_IN: 'last_logged_in'
 };
 
-
 var CHANNEL_TYPE = {
-    WEB : 'web',
-    ANDROID : 'android',
-    IOS : 'ios',
-    WINDOWS : 'windows',
-    OTHERS : 'others'
+    WEB: 'web',
+    ANDROID: 'android',
+    IOS: 'ios',
+    WINDOWS: 'windows',
+    OTHERS: 'others'
 };
 
 var Consumer = function(req) {
-    this.mobileNo = req.body[API_DB_MAPPER.MOBILE_NUMBER[0]];
-    this.channel = req.body[API_DB_MAPPER.CHANNEL[0]] || 'Unknown';
-    this.uuid = req.body[API_DB_MAPPER.UUID[0]];
-    this.email = req.body[API_DB_MAPPER.EMAIL[0]];
-    this.verified = req.body[API_DB_MAPPER.VERIFIED[0]];
-    this.updatedBy = req.body[API_DB_MAPPER.UPDATED_BY[0]];
+    var obj = req2Domain(API_MAPPER, req);
+    logger.debug('Consumer :' + JSON.stringify(obj));
 
-    this.validate = function(){
+    function createValidation() {
         var errors = new Errors();
-        if(validator.isNull(this.mobileNo)){
-            errors.add(new MissingParamError(API_DB_MAPPER.MOBILE_NUMBER));
-        }else{
-            this.mobileNo = this.mobileNo.replace(/\./g,'+').replace(/\./g,')').replace(/\./g,'(');
-            if(validator.isAlpha(this.mobileNo)){
-              errors.add(new InvalidValueError(API_DB_MAPPER.MOBILE_NUMBER));
+
+        //Primary Mobile Validation
+        var mobileNo = obj[API_MAPPER.PRIMARY_MOBILE_NO];
+        if(validator.isNull(mobileNo)) {
+            errors.add(new MissingParamError(API_MAPPER.PRIMARY_MOBILE_NO));
+        } else {
+            obj[API_MAPPER.PRIMARY_MOBILE_NO] = mobileNo.replace(/\./g, '+').replace(/\./g, ')').replace(/\./g, '(');
+            if(validator.isAlpha(mobileNo)) {
+                errors.add(new InvalidValueError(API_MAPPER.PRIMARY_MOBILE_NO));
             }
-            if(!validator.isLength(this.mobileNo, 10, 12)){
-              errors.add(new InvalidSizeError(API_DB_MAPPER.MOBILE_NUMBER));
+            if(!validator.isLength(mobileNo, 10, 12)) {
+                errors.add(new InvalidSizeError(API_MAPPER.PRIMARY_MOBILE_NO));
             }
         }
 
-        if(this.channel === CHANNEL_TYPE.WEB && validator.isNull()){
-            errors.add(new MissingParamError(API_DB_MAPPER.EMAIL));
-        }
-        if((this.channel === CHANNEL_TYPE.ANDROID || this.channel == CHANNEL_TYPE.IOS
-            || this.channel === CHANNEL_TYPE.WINDOWS) && validator.isNull(this.uuid)){
-            errors.add(new MissingParamError(API_DB_MAPPER.UUID));
+        //Email Validation
+        if(obj[API_MAPPER.CREATED_CHANNEL] === CHANNEL_TYPE.WEB && validator.isNull(obj[API_MAPPER.EMAIL])) {
+            errors.add(new MissingParamError(API_MAPPER.EMAIL));
         }
 
-        if(errors.hasError){
+        //UUID Validation
+        var channel = obj[API_MAPPER.CREATED_CHANNEL];
+        if((channel === CHANNEL_TYPE.ANDROID || channel == CHANNEL_TYPE.IOS || channel === CHANNEL_TYPE.WINDOWS) && validator.isNull(obj[API_MAPPER.UUID])) {
+            errors.add(new MissingParamError(API_MAPPER.UUID));
+        }
+
+        if(errors.hasError) {
             throw errors;
         }
+    }
+
+    function setDefaults() {
+        //Set Defaults
+        var channel = obj[API_MAPPER.CREATED_CHANNEL] || 'Unknown';
+        obj[API_MAPPER.CREATED_CHANNEL] = channel;
+    }
+
+    this.executeCreateCustomer = function(callback) {
+        //Do validation
+        createValidation();
+
+        db.create(callback, 'INSERT INTO ' + TABLE_NAME + ' SET ?', obj);
     };
 
-    this.toDBObject = function(){
-      var obj = {};
-      obj[API_DB_MAPPER.CHANNEL] = this.channel;
-      if(!validator.isNull(this.mobileNo)) obj[API_DB_MAPPER.MOBILE_NUMBER] = this.mobileNo;
-      if(!validator.isNull(this.uuid)) obj[API_DB_MAPPER.UUID] = this.uuid;
-      if(!validator.isNull(this.email)) obj[API_DB_MAPPER.EMAIL] = this.email;
-      return obj;
+    this.toObj = function() {
+        return obj;
     };
 }
 
 module.exports.Consumer = Consumer;
-module.exports.API_PARAMS = API_DB_MAPPER;
+//module.exports.API_PARAMS = API_MAPPER;
