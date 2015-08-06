@@ -79,7 +79,7 @@ router.post('/', function(req, res, next) {
             next(InternalServerError(err));
             return;
         }
-        var consumer = model.toObj();
+        var consumer = model.toApiObj();
         consumer.id = result;
         res.json(consumer);
     });

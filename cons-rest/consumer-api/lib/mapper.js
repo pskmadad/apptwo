@@ -12,32 +12,32 @@ var logger = require('./logger').logger;
  });
  };*/
 
-/*
- var db2Domain = function(dbObj){
- var keys = Object.keys(dbObj);
- var domainObj = {};
- return keys.forEach(function(e){
- domainObj[changeCase.camelCase(e)] = dbObj[e];
- });
- }
- */
+var db2Api = function(struct, dbObj) {
+    var keys = Object.keys(struct);
+    var domainObj = {};
+    for(var i = 0; i < keys.length; i++) {
+        var field = struct[keys[i]];
+        //logger.debug(field);
+        if(typeof field === 'object') {
+            if(field.show) {
+                domainObj[field.api || field.db] = dbObj[field.db];
+            }
+        } else {
+            domainObj[field] = dbObj[field];
+        }
+    }
+    return domainObj;
+}
 
 var req2Domain = function(struct, req, useDefault) {
     var keys = Object.keys(struct);
     var domainObj = {};
     for(var i = 0; i < keys.length; i++) {
         var field = struct[keys[i]];
-        logger.debug(field);
-        /*if(typeof field === 'object') {
-            if(field.show) {
-                field = field.api;
-            } else {
-                //Ignore processing of non existing field in the request
-                continue;
-            }
-        }*/
+        //logger.debug(field);
+
         var reqParam = req.body[field.api || field.db || field] || (useDefault ? field.default : undefined);
-        logger.debug(reqParam)
+        //logger.debug(reqParam)
         if(typeof reqParam !== 'undefined') {
             domainObj[field.db || field] = reqParam;
         }
@@ -70,5 +70,5 @@ var req2Domain = function(struct, req, useDefault) {
  module.exports.initialize = initialize;
  */
 /*module.exports.domain2DB = domain2DB;*/
-/*module.exports.db2Domain = db2Domain;*/
+module.exports.db2Api = db2Api;
 module.exports.req2Domain = req2Domain;

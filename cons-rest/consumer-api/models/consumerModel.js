@@ -8,6 +8,7 @@ var MissingParamError = require('./errorModel').MissingParamError;
 var InvalidValueError = require('./errorModel').InvalidValueError;
 var InvalidSizeError = require('./errorModel').InvalidSizeError;
 var req2Domain = require('../lib/mapper').req2Domain;
+var db2Api = require('../lib/mapper').db2Api;
 var logger = require('../lib/logger').logger;
 var DB = require('../lib/DB').DB;
 var db = new DB();
@@ -16,7 +17,7 @@ var TABLE_NAME = 'm_consumers';
 
 var API_MAPPER = {
     ID: 'id',
-    PRIMARY_MOBILE_NO: 'primary_mobile_no',
+    PRIMARY_MOBILE_NO: {db:'primary_mobile_no', api:'mobile_no', show:true},
     ALT_MOBILE_NO: 'alt_mobile_no',
     EMAIL: 'email',
     VERIFIED: {db: 'verified', show: true, default: 'N'},
@@ -55,16 +56,16 @@ var Consumer = function(req) {
         var errors = new Errors();
 
         //Primary Mobile Validation
-        var mobileNo = obj[API_MAPPER.PRIMARY_MOBILE_NO];
+        var mobileNo = obj[API_MAPPER.PRIMARY_MOBILE_NO.db];
         if(validator.isNull(mobileNo)) {
-            errors.add(new MissingParamError(API_MAPPER.PRIMARY_MOBILE_NO));
+            errors.add(new MissingParamError(API_MAPPER.PRIMARY_MOBILE_NO.api));
         } else {
-            mobileNo = obj[API_MAPPER.PRIMARY_MOBILE_NO] = mobileNo.replace(/\./g, '+').replace(/\./g, ')').replace(/\./g, '(');
+            mobileNo = obj[API_MAPPER.PRIMARY_MOBILE_NO.db] = mobileNo.replace(/\./g, '+').replace(/\./g, ')').replace(/\./g, '(');
             if(validator.isAlpha(mobileNo)) {
-                errors.add(new InvalidValueError(API_MAPPER.PRIMARY_MOBILE_NO));
+                errors.add(new InvalidValueError(API_MAPPER.PRIMARY_MOBILE_NO.api));
             }
             if(!validator.isLength(mobileNo, 10, 12)) {
-                errors.add(new InvalidSizeError(API_MAPPER.PRIMARY_MOBILE_NO));
+                errors.add(new InvalidSizeError(API_MAPPER.PRIMARY_MOBILE_NO.api));
             }
         }
 
@@ -102,9 +103,13 @@ var Consumer = function(req) {
         db.create(callback, 'INSERT INTO ' + TABLE_NAME + ' SET ?', obj);
     };
 
-    this.toObj = function() {
+    this.toDBObj = function() {
         return obj;
     };
+
+    this.toApiObj = function(){
+        return db2Api(API_MAPPER, obj);
+    }
 }
 
 module.exports.Consumer = Consumer;
