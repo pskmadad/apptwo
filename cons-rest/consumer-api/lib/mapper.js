@@ -22,13 +22,24 @@ var logger = require('./logger').logger;
  }
  */
 
-var req2Domain = function(struct, req) {
+var req2Domain = function(struct, req, useDefault) {
     var keys = Object.keys(struct);
     var domainObj = {};
     for(var i = 0; i < keys.length; i++) {
-        var reqParam = req.body[struct[keys[i]]];
+        var field = struct[keys[i]];
+        logger.debug(field);
+        /*if(typeof field === 'object') {
+            if(field.show) {
+                field = field.api;
+            } else {
+                //Ignore processing of non existing field in the request
+                continue;
+            }
+        }*/
+        var reqParam = req.body[field.api || field.db || field] || (useDefault ? field.default : undefined);
+        logger.debug(reqParam)
         if(typeof reqParam !== 'undefined') {
-            domainObj[struct[keys[i]]] = reqParam;
+            domainObj[field.db || field] = reqParam;
         }
     }
     return domainObj;

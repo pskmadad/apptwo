@@ -36,11 +36,14 @@ var InternalServerError = function(err) {
 
 var Errors = function() {
     this.all = [];
-    this.hasError = false;
+    var hasError = false;
     this.status = 200;
     this.add = function(error) {
-        this.hasError = true;
+        hasError = true;
         this.all.push(error);
+    };
+    this.hasError = function(){
+        return hasError;
     }
 }
 
