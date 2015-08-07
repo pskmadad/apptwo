@@ -1,2 +1,1 @@
-# apptwo
-Application Two
+Grocery application
