@@ -70,6 +70,6 @@ app.use(function(err, req, res, next) {
             res.json({'error': errorObj});
         }
     }
-});
+}); 
 
 module.exports = app;
