@@ -25,7 +25,7 @@ function DB() {
                     return;
                 }
                 logger.debug('Rows are :' + JSON.stringify(rows));
-                callback(null, rows);
+                callback(null, rows.length === 0 ? [{}] : rows);
             }
 
             if(typeof params === 'object') {

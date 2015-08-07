@@ -21,7 +21,7 @@ var TABLE_NAME = 'm_consumers';
 
 var API_MAPPER = {
     ID: 'id',
-    PRIMARY_MOBILE_NO: {db:'primary_mobile_no', api:'mobile_no', show:true},
+    PRIMARY_MOBILE_NO: {db: 'primary_mobile_no', api: 'mobile_no', show: true},
     ALT_MOBILE_NO: 'alt_mobile_no',
     EMAIL: 'email',
     VERIFIED: {db: 'verified', show: true, default: 'N'},
@@ -105,34 +105,53 @@ var Consumer = function(req) {
         obj[API_MAPPER.CREATED_DATE.db] = obj[API_MAPPER.UPDATED_DATE.db];
         obj[API_MAPPER.CREATED_BY.db] = obj[API_MAPPER.UPDATED_BY.db];
 
-        db.create(function(err, result){
-            var id = encryptKey({id : result, email: obj[API_MAPPER.EMAIL], uuid : obj[API_MAPPER.UUID], mobile : obj[API_MAPPER.PRIMARY_MOBILE_NO.db]});
+        db.create(function(err, result) {
+            var id = encryptKey([result, obj[API_MAPPER.EMAIL], obj[API_MAPPER.UUID], obj[API_MAPPER.PRIMARY_MOBILE_NO.db]]);
             //logger.debug(decryptKey(id));
-            callback(err, id, db2Api(API_MAPPER, obj));
+            callback(err, encodeURIComponent(id), db2Api(API_MAPPER, obj));
         }, 'INSERT INTO ' + TABLE_NAME + ' SET ?', obj);
     };
 
-    this.retrieveCustomer = function(id, callback){
-        if(validator.isNull(id)){
+    this.retrieveCustomer = function(id, callback) {
+
+        function buildDynamicCondition(whereObj) {
+            var keys = Object.keys(whereObj);
+            var query = ' ';
+            var values = [];
+            for(var i = 0; i < keys.length; i++) {
+                if(whereObj[keys[i]]) {
+                    if(query !== ' ') {
+                        query = query + ' and ';
+                    }
+                    query = query + keys[i] + '=?'
+                    values.push(whereObj[keys[i]]);
+                }
+            }
+            return {query: query, values: values};
+        }
+
+        if(validator.isNull(id)) {
             errors.add(new MissingParamError(API_MAPPER.ID));
             throw errors;
         }
-        var decryptedId = decryptKey(id);
-        if(decryptedId === undefined){
+        var decryptedId = decryptKey(id, [API_MAPPER.ID, API_MAPPER.EMAIL, API_MAPPER.UUID, API_MAPPER.PRIMARY_MOBILE_NO.db]);
+        if(decryptedId === undefined) {
             errors.add(new InvalidValueError(API_MAPPER.ID));
             throw errors;
         }
-        db.select(function(err, consumer){
-            if(consumer.length === 1){
-                logger.debug(consumer[0]);
-                consumer[0][API_MAPPER.ID] = id;
+        var buildWhere = buildDynamicCondition(decryptedId);
+
+        db.select(function(err, consumer) {
+            if(consumer.length === 1 && Object.keys(consumer[0]).length > 0) {
+                logger.debug('Cons:'+consumer[0]);
+                consumer[0][API_MAPPER.ID] = encodeURIComponent(id);
                 logger.debug(JSON.stringify(consumer[0]));
                 callback(err, db2Api(API_MAPPER, consumer[0]));
-            }else{
+            } else {
                 errors.add(new NoDataFoundError('Consumer'));
-                throw errors;
+                callback(errors);
             }
-        }, 'SELECT * FROM '+TABLE_NAME+' WHERE id=?',[decryptedId.id]);
+        }, 'SELECT * FROM ' + TABLE_NAME + ' WHERE ' + buildWhere.query, buildWhere.values);
     };
 
 }

@@ -58,7 +58,7 @@ router.get('/:id', function(req, res, next) {
     model.retrieveCustomer(req.params.id, function(err, consumer) {
         logger.error(err);
         if(err) {
-            next(InternalServerError(err));
+            next(err.hasError() ? err : InternalServerError(err));
             return;
         }
         res.json(consumer);
