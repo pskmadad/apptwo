@@ -26,6 +26,12 @@ var InvalidSizeError = function(field) {
     this.message = 'Invalid field size';
 }
 
+var NoDataFoundError = function(field) {
+    this.field = field;
+    this.code = 404;
+    this.message = 'No Data found';
+}
+
 var InternalServerError = function(err) {
     return {
         message: 'Internal Server Error',
@@ -53,3 +59,4 @@ module.exports.InvalidValueError = InvalidValueError;
 module.exports.InvalidSizeError = InvalidSizeError;
 module.exports.Errors = Errors;
 module.exports.InternalServerError = InternalServerError;
+module.exports.NoDataFoundError = NoDataFoundError;

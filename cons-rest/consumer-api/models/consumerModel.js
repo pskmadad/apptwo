@@ -7,6 +7,7 @@ var Errors = require('./errorModel').Errors;
 var MissingParamError = require('./errorModel').MissingParamError;
 var InvalidValueError = require('./errorModel').InvalidValueError;
 var InvalidSizeError = require('./errorModel').InvalidSizeError;
+var NoDataFoundError = require('./errorModel').NoDataFoundError;
 var req2Domain = require('../lib/mapper').req2Domain;
 var db2Api = require('../lib/mapper').db2Api;
 var logger = require('../lib/logger').logger;
@@ -53,9 +54,9 @@ var CHANNEL_TYPE = {
 
 var Consumer = function(req) {
     var request = req;
+    var errors = new Errors();
 
     function createValidation(obj) {
-        var errors = new Errors();
 
         //Primary Mobile Validation
         var mobileNo = obj[API_MAPPER.PRIMARY_MOBILE_NO.db];
@@ -111,8 +112,27 @@ var Consumer = function(req) {
         }, 'INSERT INTO ' + TABLE_NAME + ' SET ?', obj);
     };
 
-    this.retrieveCustomer = function(callback){
-
+    this.retrieveCustomer = function(id, callback){
+        if(validator.isNull(id)){
+            errors.add(new MissingParamError(API_MAPPER.ID));
+            throw errors;
+        }
+        var decryptedId = decryptKey(id);
+        if(decryptedId === undefined){
+            errors.add(new InvalidValueError(API_MAPPER.ID));
+            throw errors;
+        }
+        db.select(function(err, consumer){
+            if(consumer.length === 1){
+                logger.debug(consumer[0]);
+                consumer[0][API_MAPPER.ID] = id;
+                logger.debug(JSON.stringify(consumer[0]));
+                callback(err, db2Api(API_MAPPER, consumer[0]));
+            }else{
+                errors.add(new NoDataFoundError('Consumer'));
+                throw errors;
+            }
+        }, 'SELECT * FROM '+TABLE_NAME+' WHERE id=?',[decryptedId.id]);
     };
 
 }

@@ -17,12 +17,12 @@ var db2Api = function(struct, dbObj) {
     var domainObj = {};
     for(var i = 0; i < keys.length; i++) {
         var field = struct[keys[i]];
-        //logger.debug(field);
-        if(typeof field === 'object') {
-            if(field.show) {
-                domainObj[field.api || field.db] = dbObj[field.db];
-            }
-        } else {
+        //logger.debug('Db2API :'+dbObj[field.db]);
+        //Check field is object & need to show in api as well as value is available
+        if(typeof field === 'object' && field.show && typeof dbObj[field.db] !== 'undefined' && dbObj[field.db] !== null) {
+            domainObj[field.api || field.db] = dbObj[field.db];
+        } else if(typeof dbObj[field] !== 'undefined' && dbObj[field] !== null){
+            //Check value is available before adding it
             domainObj[field] = dbObj[field];
         }
     }

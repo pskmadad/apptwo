@@ -53,7 +53,16 @@ router.get('/:id/orders', function(req, res, next) {
  *
  */
 router.get('/:id', function(req, res, next) {
-    res.json({test: 'success'});
+    console.log('Data :'+req.params.id);
+    var model = new Model(req);
+    model.retrieveCustomer(req.params.id, function(err, consumer) {
+        logger.error(err);
+        if(err) {
+            next(InternalServerError(err));
+            return;
+        }
+        res.json(consumer);
+    });
 });
 
 /**
