@@ -3,21 +3,23 @@
  */
 
 module.exports = {
-  development : {
-    port : 3001,
-    db : {
-      host : 'localhost',
-      connectionLimit : 10,
-      user : 'groceryapp',
-      password : 'Gr0c@ry',
-      database : 'grocery',
-      debug : true
+    development: {
+        port: 3001,
+        db: {
+            host: 'localhost',
+            connectionLimit: 10,
+            user: 'groceryapp',
+            password: 'Gr0c@ry',
+            database: 'grocery',
+            debug: true
+        },
+        log: {
+            console: true
+        },
+        decrypted: '|SuperGroceryApp|',
+        salt: '1'
     },
-    log : {
-      console : true
-    }
-  },
-  production : {
+    production: {
 
-  }
+    }
 };

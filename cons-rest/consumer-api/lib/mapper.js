@@ -29,14 +29,14 @@ var db2Api = function(struct, dbObj) {
     return domainObj;
 }
 
-var req2Domain = function(struct, req, useDefault) {
+var req2Domain = function(struct, body, useDefault) {
     var keys = Object.keys(struct);
     var domainObj = {};
     for(var i = 0; i < keys.length; i++) {
         var field = struct[keys[i]];
         //logger.debug(field);
 
-        var reqParam = req.body[field.api || field.db || field] || (useDefault ? field.default : undefined);
+        var reqParam = body[field.api || field.db || field] || (useDefault ? field.default : undefined);
         //logger.debug(reqParam)
         if(typeof reqParam !== 'undefined') {
             domainObj[field.db || field] = reqParam;

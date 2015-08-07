@@ -4,9 +4,10 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var xorCrypt = require('xor-crypt');
 
 var app = express();
-var config = require('./config/config')[app.settings.env];
+var config = require('./config/config')[app.get('env')];
 
 //Initialize required objects
 require('./lib/logger').initialize(config);
@@ -57,7 +58,27 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-//app.use('/', routes);
+console.log('Encrypted: ' + xorCrypt(config.decrypted, config.salt));
+
+// Check for authentication
+app.use(function(req, res, next) {
+
+    function isInvalid(data) {
+        return xorCrypt(data, config.salt) !== config.decrypted;
+    }
+
+    if(typeof req.header('X_APP_ORIGIN') === 'undefined' || isInvalid(req.header('X_APP_ORIGIN'))) {
+        res.render('error', {
+            message: 'Unauthorized access',
+            stack: 'Unable to access this ' + req.originalUrl,
+            status: 401
+        });
+        return;
+    } else {
+        next();
+    }
+});
+
 app.use('/api/v1/consumers', consumers);
 app.use('/api/v1/products', products);
 
@@ -72,26 +93,6 @@ app.use(function(req, res, next) {
 
 // development error handler
 // will print stacktrace
-if(app.get('env') === 'development') {
-    app.use(function(err, req, res, next) {
-        //Handled error
-        if(err.status === 200) {
-            res.status(err.status);
-            res.json({errors: err});
-        } else {
-            res.status(err.status || 500);
-            res.render('error', {
-                message: err.message,
-                stack: err.details,
-                status: err.status || 500
-            });
-        }
-    });
-}
-
-// production error handler
-// no stacktraces leaked to user
-
 app.use(function(err, req, res, next) {
     //Handled error
     if(err.status === 200) {
@@ -99,11 +100,19 @@ app.use(function(err, req, res, next) {
         res.json({errors: err});
     } else {
         res.status(err.status || 500);
-        res.json({'error': {
-            message: err.message,
-            stack: err.details,
-            status: 500
-        }});
+        if(app.get('env') === 'development') {
+            res.render('error', {
+                message: err.message,
+                stack: err.details,
+                status: err.status || 500
+            });
+        } else {
+            res.json({'error': {
+                message: err.message,
+                stack: err.details,
+                status: 500
+            }});
+        }
     }
 });
 

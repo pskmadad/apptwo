@@ -73,13 +73,13 @@ router.get('/:id', function(req, res, next) {
  */
 router.post('/', function(req, res, next) {
     var model = new Model(req);
-    model.executeCreateCustomer(function(err, result) {
+    model.executeCreateCustomer(function(err, result, apiObj) {
         logger.error(err);
         if(err) {
             next(InternalServerError(err));
             return;
         }
-        var consumer = model.toApiObj();
+        var consumer = apiObj;
         consumer.id = result;
         res.json(consumer);
     });

@@ -49,10 +49,9 @@ var CHANNEL_TYPE = {
 };
 
 var Consumer = function(req) {
-    var obj = req2Domain(API_MAPPER, req, true);
-    logger.debug('Consumer :' + JSON.stringify(obj));
+    var request = req;
 
-    function createValidation() {
+    function createValidation(obj) {
         var errors = new Errors();
 
         //Primary Mobile Validation
@@ -92,24 +91,25 @@ var Consumer = function(req) {
     }
 
     this.executeCreateCustomer = function(callback) {
+        var obj = req2Domain(API_MAPPER, request.body, true);
+        logger.debug('Consumer :' + JSON.stringify(obj));
         //Do validation
-        createValidation();
+        createValidation(obj);
 
         //Set create defaults
         obj[API_MAPPER.CREATED_CHANNEL.db] = obj[API_MAPPER.LAST_ACCESSED_CHANNEL.db];
         obj[API_MAPPER.CREATED_DATE.db] = obj[API_MAPPER.UPDATED_DATE.db];
         obj[API_MAPPER.CREATED_BY.db] = obj[API_MAPPER.UPDATED_BY.db];
 
-        db.create(callback, 'INSERT INTO ' + TABLE_NAME + ' SET ?', obj);
+        db.create(function(err, result){
+            callback(err, result, db2Api(API_MAPPER, obj));
+        }, 'INSERT INTO ' + TABLE_NAME + ' SET ?', obj);
     };
 
-    this.toDBObj = function() {
-        return obj;
+    this.retrieveCustomer = function(callback){
+
     };
 
-    this.toApiObj = function(){
-        return db2Api(API_MAPPER, obj);
-    }
 }
 
 module.exports.Consumer = Consumer;

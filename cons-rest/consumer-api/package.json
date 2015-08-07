@@ -16,7 +16,8 @@
     "mysql": "~2.8.0",
     "validator" : "~4.0.1",
     "winston" : "~1.0.1",
-    "change-case" : "~2.3.0"
+    "change-case" : "~2.3.0",
+    "xor-crypt" : "~1.0.0"
   },
   "devDependencies": {
       "apidoc": "~0.13.1"
