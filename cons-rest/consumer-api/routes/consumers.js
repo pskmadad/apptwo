@@ -80,7 +80,7 @@ router.post('/', function(req, res, next) {
             return;
         }
         var consumer = apiObj;
-        consumer.id = result;
+        consumer.id = result ;
         res.json(consumer);
     });
 });

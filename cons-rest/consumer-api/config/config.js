@@ -16,7 +16,7 @@ module.exports = {
         log: {
             console: true
         },
-        decrypted: '|SuperGroceryApp|',
+        decrypted: '|SuperGroceryApp|', //}RtqdsFsnbdsx@qq}
         salt: '1'
     },
     production: {

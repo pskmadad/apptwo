@@ -4,7 +4,9 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var xorCrypt = require('xor-crypt');
+var auth = require('./lib/auth');
+var consumers = require('./routes/consumers');
+var products = require('./routes/products');
 
 var app = express();
 var config = require('./config/config')[app.get('env')];
@@ -12,9 +14,6 @@ var config = require('./config/config')[app.get('env')];
 //Initialize required objects
 require('./lib/logger').initialize(config);
 require('./lib/DB').initialize(config);
-
-var consumers = require('./routes/consumers');
-var products = require('./routes/products');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -24,61 +23,21 @@ app.set('view engine', 'jade');
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 
-/*app.use(function (req, res, next) {
- req.config = config;
- var changeCase = require('change-case');
- var arr = ['id',
- 'primary_mobile_no',
- 'alt_mobile_no',
- 'email',
- 'verified',
- 'gen_pin',
- 'status',
- 'attempt_count',
- 'uuid',
- 'overall_save',
- 'last_redeem',
- 'savings_balance',
- 'last_accessed_channel',
- 'created_channel',
- 'created_date',
- 'created_by',
- 'updated_by',
- 'updated_date',
- 'last_logged_in'];
- for(var i=0; i<arr.length; i++){
- console.log(changeCase.upperCase(arr[i]) + ' : \''+arr[i]+'\',');
- }
-
- next();
- });*/
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-console.log('Encrypted: ' + xorCrypt(config.decrypted, config.salt));
-
-// Check for authentication
+//Inject config object to request and get it wherever required
 app.use(function(req, res, next) {
-
-    function isInvalid(data) {
-        return xorCrypt(data, config.salt) !== config.decrypted;
-    }
-
-    if(typeof req.header('X_APP_ORIGIN') === 'undefined' || isInvalid(req.header('X_APP_ORIGIN'))) {
-        res.render('error', {
-            message: 'Unauthorized access',
-            stack: 'Unable to access this ' + req.originalUrl,
-            status: 401
-        });
-        return;
-    } else {
-        next();
-    }
+    req.config = config;
+    next();
 });
 
+// Check for authentication
+app.use(auth.ensureAuthentication);
+
+// Routes
 app.use('/api/v1/consumers', consumers);
 app.use('/api/v1/products', products);
 
@@ -100,18 +59,15 @@ app.use(function(err, req, res, next) {
         res.json({errors: err});
     } else {
         res.status(err.status || 500);
+        var errorObj = {
+            message: err.message,
+            stack: err.details,
+            status: err.status || 500
+        };
         if(app.get('env') === 'development') {
-            res.render('error', {
-                message: err.message,
-                stack: err.details,
-                status: err.status || 500
-            });
+            res.render('error',errorObj);
         } else {
-            res.json({'error': {
-                message: err.message,
-                stack: err.details,
-                status: 500
-            }});
+            res.json({'error': errorObj});
         }
     }
 });

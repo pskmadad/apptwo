@@ -10,6 +10,9 @@ var InvalidSizeError = require('./errorModel').InvalidSizeError;
 var req2Domain = require('../lib/mapper').req2Domain;
 var db2Api = require('../lib/mapper').db2Api;
 var logger = require('../lib/logger').logger;
+var encryptKey = require('../util/crypto').encryptKey;
+var decryptKey = require('../util/crypto').decryptKey;
+
 var DB = require('../lib/DB').DB;
 var db = new DB();
 
@@ -102,7 +105,9 @@ var Consumer = function(req) {
         obj[API_MAPPER.CREATED_BY.db] = obj[API_MAPPER.UPDATED_BY.db];
 
         db.create(function(err, result){
-            callback(err, result, db2Api(API_MAPPER, obj));
+            var id = encryptKey({id : result, email: obj[API_MAPPER.EMAIL], uuid : obj[API_MAPPER.UUID], mobile : obj[API_MAPPER.PRIMARY_MOBILE_NO.db]});
+            //logger.debug(decryptKey(id));
+            callback(err, id, db2Api(API_MAPPER, obj));
         }, 'INSERT INTO ' + TABLE_NAME + ' SET ?', obj);
     };
 
