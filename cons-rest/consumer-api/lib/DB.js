@@ -12,7 +12,9 @@ function DB() {
     this.select = function(callback, query, params) {
         pool.getConnection(function(err, connection) {
             if(err) {
-                connection.release();
+                if(connection) {
+                    connection.release();
+                }
                 logger.warn('Error while getting connection');
                 callback(err, null);
                 return;
@@ -25,14 +27,15 @@ function DB() {
                     return;
                 }
                 logger.debug('Rows are :' + JSON.stringify(rows));
-                callback(null, rows.length === 0 ? [{}] : rows);
+                callback(null, rows.length === 0 ? [
+                    {}
+                ] : rows);
             }
 
             if(typeof params === 'object') {
-                connection.query(query, params, resultHandler);
-            } else {
-                connection.query(query, resultHandler);
+                query = mysql.format(query, params);
             }
+            connection.query(query, resultHandler);
 
             connection.on('error', function(error) {
                 logger.warn('Error while retrieving data...');
@@ -45,7 +48,9 @@ function DB() {
     this.create = function(callback, query, data) {
         pool.getConnection(function(err, connection) {
             if(err) {
-                connection.release();
+                if(connection) {
+                    connection.release();
+                }
                 logger.warn('Error while getting connection for creating');
                 callback(err, null);
                 return;
@@ -72,7 +77,9 @@ function DB() {
     this.update = function(callback, query, data) {
         pool.getConnection(function(err, connection) {
             if(err) {
-                connection.release();
+                if(connection) {
+                    connection.release();
+                }
                 logger.warn('Error while getting connection for updating');
                 callback(err, null);
                 return;
@@ -95,6 +102,23 @@ function DB() {
             });
         });
     };
+
+    this.buildDynamicCondition = function(whereObj, seperator) {
+        var keys = Object.keys(whereObj);
+        var query = ' ';
+        var values = [];
+        for(var i = 0; i < keys.length; i++) {
+            if(whereObj[keys[i]]) {
+                if(query !== ' ') {
+                    query = query + seperator;
+                }
+                query = query + keys[i] + '=?'
+                values.push(whereObj[keys[i]]);
+            }
+        }
+        return {query: query, values: values};
+    }
+
 }
 
 module.exports.initialize = function(config) {

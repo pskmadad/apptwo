@@ -4,7 +4,7 @@
 var express = require('express');
 var router = express.Router();
 var Model = require('../models/consumerModel').Consumer;
-var InternalServerError = require('../models/errorModel').InternalServerError;
+var InternalServerError = require('../mapper/errorMapper').InternalServerError;
 var logger = require('../lib/logger').logger;
 
 /**
@@ -82,7 +82,7 @@ router.get('/:id', function(req, res, next) {
  */
 router.post('/', function(req, res, next) {
     var model = new Model(req);
-    model.executeCreateCustomer(function(err, result, apiObj) {
+    model.createCustomer(function(err, result, apiObj) {
         logger.error(err);
         if(err) {
             next(InternalServerError(err));

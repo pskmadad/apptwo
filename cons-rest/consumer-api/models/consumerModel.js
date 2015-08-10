@@ -3,54 +3,24 @@
  */
 
 var validator = require('validator');
-var Errors = require('./errorModel').Errors;
-var MissingParamError = require('./errorModel').MissingParamError;
-var InvalidValueError = require('./errorModel').InvalidValueError;
-var InvalidSizeError = require('./errorModel').InvalidSizeError;
-var NoDataFoundError = require('./errorModel').NoDataFoundError;
+var Errors = require('../mapper/errorMapper').Errors;
+var MissingParamError = require('../mapper/errorMapper').MissingParamError;
+var InvalidValueError = require('../mapper/errorMapper').InvalidValueError;
+var InvalidSizeError = require('../mapper/errorMapper').InvalidSizeError;
+var NoDataFoundError = require('../mapper/errorMapper').NoDataFoundError;
 var req2Domain = require('../lib/mapper').req2Domain;
 var db2Api = require('../lib/mapper').db2Api;
 var logger = require('../lib/logger').logger;
 var encryptKey = require('../util/crypto').encryptKey;
 var decryptKey = require('../util/crypto').decryptKey;
+var FIELDS = require('../mapper/consumerMapper').FIELDS;
+var CHANNEL_TYPE = require('../mapper/consumerMapper').CHANNEL_TYPE;
+var VALIDATORS = require('../mapper/consumerMapper').VALIDATORS;
 
 var DB = require('../lib/DB').DB;
 var db = new DB();
 
 var TABLE_NAME = 'm_consumers';
-
-var API_MAPPER = {
-    ID: 'id',
-    PRIMARY_MOBILE_NO: {db: 'primary_mobile_no', api: 'mobile_no', show: true},
-    ALT_MOBILE_NO: 'alt_mobile_no',
-    EMAIL: 'email',
-    VERIFIED: {db: 'verified', show: true, default: 'N'},
-    GEN_PIN: {db: 'gen_pin', show: true, default: Math.round(Math.random() * 100000)},
-    STATUS: {db: 'status', show: true, default: 'PENDING'},
-    UUID: 'uuid',
-    OVERALL_SAVE: {db: 'overall_save', show: true, default: 0},
-    LAST_REDEEM: 'last_redeem',
-    SAVINGS_BALANCE: {db: 'savings_balance', show: true, default: 0},
-    ATTEMPT_COUNT: {db: 'attempt_count', show: false, default: 0},
-    LAST_ACCESSED_CHANNEL: {db: 'last_accessed_channel', api: 'channel', show: true},
-    CREATED_CHANNEL: {db: 'created_channel', show: true},
-    CREATED_DATE: {db: 'created_date', show: false},
-    CREATED_BY: {db: 'created_by', show: true},
-    UPDATED_BY: {db: 'updated_by', api: 'user', show: true},
-    UPDATED_DATE: {db: 'updated_date', api: 'modified_date', show: true, default: new Date()},
-    LAST_LOGGED_IN: {db: 'last_logged_in', api: 'accessed_date', show: true, default: new Date()}
-};
-
-var CHANNEL_TYPE = {
-    WEB: 'W',
-    ANDROID: 'A',
-    IOS: 'I',
-    WINDOWS: 'D',
-    OTHERS: 'O',
-    isValid: function(input) {
-        return input === this.WEB || input === this.ANDROID || input === this.IOS || input === this.WINDOWS || input === this.OTHERS;
-    }
-};
 
 var Consumer = function(req) {
     var request = req;
@@ -58,8 +28,11 @@ var Consumer = function(req) {
 
     function createValidation(obj) {
 
+        if(errors.hasError()) {
+            throw errors;
+        }
         //Primary Mobile Validation
-        var mobileNo = obj[API_MAPPER.PRIMARY_MOBILE_NO.db];
+        /*var mobileNo = obj[API_MAPPER.PRIMARY_MOBILE_NO.db];
         if(validator.isNull(mobileNo)) {
             errors.add(new MissingParamError(API_MAPPER.PRIMARY_MOBILE_NO.api));
         } else {
@@ -70,83 +43,75 @@ var Consumer = function(req) {
             if(!validator.isLength(mobileNo, 10, 12)) {
                 errors.add(new InvalidSizeError(API_MAPPER.PRIMARY_MOBILE_NO.api));
             }
-        }
+        }*/
 
-        var channel = obj[API_MAPPER.LAST_ACCESSED_CHANNEL.db];
+        /*var channel = obj[API_MAPPER.LAST_ACCESSED_CHANNEL.db];
         //Channel validation
         if(validator.isNull(channel)) {
             errors.add(new MissingParamError(API_MAPPER.LAST_ACCESSED_CHANNEL.api));
         } else if(!CHANNEL_TYPE.isValid(channel)) {
             errors.add(new InvalidValueError(API_MAPPER.LAST_ACCESSED_CHANNEL.api))
-        } else {
+        } else {*/
+        var channel = obj[FIELDS.LAST_ACCESSED_CHANNEL.mappedTo];
             //Email Validation
-            if(channel === CHANNEL_TYPE.WEB && validator.isNull(obj[API_MAPPER.EMAIL])) {
-                errors.add(new MissingParamError(API_MAPPER.EMAIL));
+            if(channel === CHANNEL_TYPE.WEB && validator.isNull(obj[FIELDS.EMAIL.mappedTo])) {
+                errors.add(new MissingParamError(FIELDS.EMAIL.field));
             }
             //UUID Validation
-            if((channel === CHANNEL_TYPE.ANDROID || channel == CHANNEL_TYPE.IOS || channel === CHANNEL_TYPE.WINDOWS) && validator.isNull(obj[API_MAPPER.UUID])) {
-                errors.add(new MissingParamError(API_MAPPER.UUID));
+            if((channel === CHANNEL_TYPE.ANDROID || channel == CHANNEL_TYPE.IOS || channel === CHANNEL_TYPE.WINDOWS) && validator.isNull(obj[FIELDS.UUID.mappedTo])) {
+                errors.add(new MissingParamError(FIELDS.UUID.field));
             }
-        }
+        /*}*/
 
         if(errors.hasError()) {
             throw errors;
         }
     }
 
-    this.executeCreateCustomer = function(callback) {
-        var obj = req2Domain(API_MAPPER, request.body, true);
+    function decryptCustomerId(id) {
+        if(validator.isNull(id)) {
+            errors.add(new MissingParamError(FIELDS.ID.field));
+            throw errors;
+        }
+        var decryptedId = decryptKey(id, FIELDS.ID.cryptoKey);
+        if(decryptedId === undefined) {
+            errors.add(new InvalidValueError(FIELDS.ID.field));
+            throw errors;
+        }
+        return decryptedId;
+    }
+
+    this.createCustomer = function(callback) {
+        var options = {error : errors, reqType: 'new', useDefault: true}
+        var obj = req2Domain(FIELDS, request.body, options);
         logger.debug('Consumer :' + JSON.stringify(obj));
         //Do validation
         createValidation(obj);
 
         //Set create defaults
-        obj[API_MAPPER.CREATED_CHANNEL.db] = obj[API_MAPPER.LAST_ACCESSED_CHANNEL.db];
-        obj[API_MAPPER.CREATED_DATE.db] = obj[API_MAPPER.UPDATED_DATE.db];
-        obj[API_MAPPER.CREATED_BY.db] = obj[API_MAPPER.UPDATED_BY.db];
+        obj[FIELDS.ATTEMPT_COUNT.mappedTo] = 0;
+        obj[FIELDS.CREATED_CHANNEL.mappedTo] = obj[FIELDS.LAST_ACCESSED_CHANNEL.mappedTo];
+        obj[FIELDS.CREATED_DATE.mappedTo] = obj[FIELDS.UPDATED_DATE.mappedTo];
+        obj[FIELDS.CREATED_BY.mappedTo] = obj[FIELDS.UPDATED_BY.mappedTo];
 
         db.create(function(err, result) {
-            var id = encryptKey([result, obj[API_MAPPER.EMAIL], obj[API_MAPPER.UUID], obj[API_MAPPER.PRIMARY_MOBILE_NO.db]]);
+            var id = encryptKey([result, obj[FIELDS.EMAIL], obj[FIELDS.UUID], obj[FIELDS.PRIMARY_MOBILE_NO]]);
             //logger.debug(decryptKey(id));
-            callback(err, encodeURIComponent(id), db2Api(API_MAPPER, obj));
+            callback(err, encodeURIComponent(id), db2Api(FIELDS, obj));
         }, 'INSERT INTO ' + TABLE_NAME + ' SET ?', obj);
     };
 
     this.retrieveCustomer = function(id, callback) {
 
-        function buildDynamicCondition(whereObj) {
-            var keys = Object.keys(whereObj);
-            var query = ' ';
-            var values = [];
-            for(var i = 0; i < keys.length; i++) {
-                if(whereObj[keys[i]]) {
-                    if(query !== ' ') {
-                        query = query + ' and ';
-                    }
-                    query = query + keys[i] + '=?'
-                    values.push(whereObj[keys[i]]);
-                }
-            }
-            return {query: query, values: values};
-        }
-
-        if(validator.isNull(id)) {
-            errors.add(new MissingParamError(API_MAPPER.ID));
-            throw errors;
-        }
-        var decryptedId = decryptKey(id, [API_MAPPER.ID, API_MAPPER.EMAIL, API_MAPPER.UUID, API_MAPPER.PRIMARY_MOBILE_NO.db]);
-        if(decryptedId === undefined) {
-            errors.add(new InvalidValueError(API_MAPPER.ID));
-            throw errors;
-        }
-        var buildWhere = buildDynamicCondition(decryptedId);
+        var decryptedId = decryptCustomerId(id);
+        var buildWhere = db.buildDynamicCondition(decryptedId, ' and ');
 
         db.select(function(err, consumer) {
-            if(consumer.length === 1 && Object.keys(consumer[0]).length > 0) {
-                logger.debug('Cons:'+consumer[0]);
-                consumer[0][API_MAPPER.ID] = encodeURIComponent(id);
+            if(consumer && consumer.length === 1 && Object.keys(consumer[0]).length > 0) {
+                //logger.debug('Cons:'+consumer[0]);
+                consumer[0][FIELDS.ID.field] = encodeURIComponent(id);
                 logger.debug(JSON.stringify(consumer[0]));
-                callback(err, db2Api(API_MAPPER, consumer[0]));
+                callback(err, db2Api(FIELDS, consumer[0]));
             } else {
                 errors.add(new NoDataFoundError('Consumer'));
                 callback(errors);
@@ -154,6 +119,59 @@ var Consumer = function(req) {
         }, 'SELECT * FROM ' + TABLE_NAME + ' WHERE ' + buildWhere.query, buildWhere.values);
     };
 
+    function modifyValidation(consumerReq) {
+        if(!validator.isNull(consumerReq[API_MAPPER.PRIMARY_MOBILE_NO.db])) {
+            errors.add(new InvalidValueError(API_MAPPER.PRIMARY_MOBILE_NO.db));
+        }
+        if(!validator.isNull(consumerReq[API_MAPPER.status.db])) {
+            errors.add(new InvalidValueError(API_MAPPER.status.db));
+        }
+        if(!validator.isNull(consumerReq[API_MAPPER.UUID.db])) {
+            errors.add(new InvalidValueError(API_MAPPER.UUID.db));
+        }
+        if(!validator.isNull(consumerReq[API_MAPPER.OVERALL_SAVE.db])) {
+            errors.add(new InvalidValueError(API_MAPPER.OVERALL_SAVE.db));
+        }
+        //Decide the data that can be updated and do validation
+        var channel = consumerReq[API_MAPPER.LAST_ACCESSED_CHANNEL.db];
+
+        //Channel validation
+        if(validator.isNull(channel)) {
+            errors.add(new MissingParamError(API_MAPPER.LAST_ACCESSED_CHANNEL.api));
+        } else if(!CHANNEL_TYPE.isValid(channel)) {
+            errors.add(new InvalidValueError(API_MAPPER.LAST_ACCESSED_CHANNEL.api))
+        }
+
+        if(errors.hasError()) {
+            throw errors;
+        }
+    }
+
+    this.modifyCustomer = function(id, callback) {
+        var consumerReq = req2Domain(API_MAPPER, request.body, true);
+        modifyValidation(consumerReq);
+
+        var decryptedId = decryptCustomerId(id);
+        var buildWhere = db.buildDynamicCondition(decryptedId);
+        var arr = buildWhere.values;
+        arr.splice(0, 0, 'Test@test.com');
+        console.log('Array ==========> ' + arr);
+        db.update(function(err, result) {
+            logger.debug('Updated ' + result);
+            callback(err, db2Api(API_MAPPER, consumer[0]));
+        }, 'UPDATE ' + TABLE_NAME + ' SET email=? WHERE ' + buildWhere.query, arr);
+
+        this.retrieveCustomer(id, function(err, consumer) {
+            if(err) {
+                callback(err);
+            } else {
+                //Merge the passed in data with retrieved customer
+                //Update the customer and then call the callback;
+
+                //db.update()
+            }
+        });
+    }
 }
 
 module.exports.Consumer = Consumer;
