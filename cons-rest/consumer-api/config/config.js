@@ -11,7 +11,7 @@ module.exports = {
             user: 'groceryapp',
             password: 'Gr0c@ry',
             database: 'grocery',
-            debug: true
+            debug: false
         },
         log: {
             console: true

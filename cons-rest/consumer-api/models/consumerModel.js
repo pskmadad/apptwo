@@ -14,7 +14,6 @@ var encryptKey = require('../util/crypto').encryptKey;
 var decryptKey = require('../util/crypto').decryptKey;
 var FIELDS = require('../mapper/consumerMapper').FIELDS;
 var CHANNEL_TYPE = require('../mapper/consumerMapper').CHANNEL_TYPE;
-var _ = require('underscore');
 
 var DB = require('../lib/DB').DB;
 var db = new DB();
@@ -50,7 +49,9 @@ var Consumer = function(req) {
             errors.add(new MissingParamError(FIELDS.ID.field));
         }
         var decryptedId = decryptKey(id, FIELDS.ID.cryptoKey);
-        if(decryptedId === undefined) {
+        console.log(decryptedId[FIELDS.EMAIL.mappedTo] + ':'+decryptedId[FIELDS.PRIMARY_MOBILE_NO.mappedTo]+':'+decryptedId[FIELDS.UUID.mappedTo]);
+        if(decryptedId === undefined ||
+          (!decryptedId[FIELDS.EMAIL.mappedTo] && !decryptedId[FIELDS.PRIMARY_MOBILE_NO.mappedTo] && !decryptedId[FIELDS.UUID.mappedTo])) {
             errors.add(new InvalidValueError(FIELDS.ID.field));
         }
         return decryptedId;
@@ -114,9 +115,7 @@ var Consumer = function(req) {
         }
         logger.debug('Decrypted Key :'+JSON.stringify(decryptedId));
         var buildWhere = db.buildDynamicCondition(decryptedId, ' and ');
-        logger.debug('BuildWhere '+JSON.stringify(buildWhere));
         var setPart = db.buildDynamicCondition(consumerReq, ' , ');
-        logger.debug('Set Part '+JSON.stringify(setPart));
         setPart.values.splice(setPart.values.length, 0, buildWhere.values);
         console.log('Array ==========> ' + setPart.values);
         db.update(function(err, updatedConsumer) {

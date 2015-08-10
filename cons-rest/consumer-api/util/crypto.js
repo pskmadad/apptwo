@@ -47,6 +47,7 @@ function decryptKey(data, struct) {
     var decryptedData = xorCrypt(data);
     logger.debug(decryptedData);
     var elements = decryptedData.split('!|!');
+    logger.debug('Struct Len:'+struct.length+' : '+(elements.length-1));
     if(struct.length !== elements.length - 1) {
         return undefined;
     }
@@ -56,7 +57,7 @@ function decryptKey(data, struct) {
             decryptedObj[struct[i]] = elements[i];
         }
     }
-    logger.debug(decryptedObj);
+    logger.debug('Decrypt Obj:'+JSON.stringify(decryptedObj));
 
     return decryptedObj;
 }
