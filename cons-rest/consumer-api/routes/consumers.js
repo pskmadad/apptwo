@@ -4,7 +4,7 @@
 var express = require('express');
 var router = express.Router();
 var Model = require('../models/consumerModel').Consumer;
-var InternalServerError = require('../mapper/errorMapper').InternalServerError;
+var InternalServerError = require('../lib/error').InternalServerError;
 var logger = require('../lib/logger').logger;
 
 /**
