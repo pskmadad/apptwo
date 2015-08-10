@@ -27,7 +27,6 @@ var DB_PARAMS = {
 };
 
 
-
 var API_PARAMS = {
     ID: {
         cryptoKey: [DB_PARAMS.ID, DB_PARAMS.EMAIL, DB_PARAMS.UUID, DB_PARAMS.PRIMARY_MOBILE_NO],
@@ -51,6 +50,9 @@ var API_PARAMS = {
     },
     UUID: {
         field: DB_PARAMS.UUID
+    },
+    EMAIL: {
+        field: DB_PARAMS.EMAIL
     },
     OVERALL_SAVE: { //Updated whenever order is processed
         validation: [validator.NON_ACCEPTABLE],

@@ -7,8 +7,10 @@ var logger = require('./logger').logger;
 var db2Api = function(struct, dbObj) {
     var keys = Object.keys(struct);
     var domainObj = {};
+    logger.debug('DB :'+JSON.stringify(dbObj));
     for(var i = 0; i < keys.length; i++) {
         var field = struct[keys[i]];
+        //logger.debug('Field:'+JSON.stringify(field));
         //Check field is object & need to show in api as well as value is available
         if(!field.hideToApi && typeof dbObj[field.mappedTo] !== 'undefined' && dbObj[field.mappedTo] !== null) {
             domainObj[field.field] = dbObj[field.mappedTo];
@@ -18,19 +20,19 @@ var db2Api = function(struct, dbObj) {
 }
 
 var req2Domain = function(struct, body, options) {
-    console.log('Step 1');
+    //console.log('Step 1');
     var keys = Object.keys(struct);
-    console.log('Step 2');
+    //console.log('Step 2');
     var domainObj = {};
 
     for(var i = 0; i < keys.length; i++) {
         var element = struct[keys[i]];
-        logger.debug(element.field);
+        //logger.debug(element.field);
 
         var reqParam = body[element.field || element.mappedTo];
         var validations = element.validation || [];
         for(var j=0; j<validations.length; j++){
-            console.log('-->'+ element.field +':'+reqParam);
+            //console.log('-->'+ element.field +':'+reqParam);
             validations[j](options.error, element.field, reqParam, options.reqType);
         }
 

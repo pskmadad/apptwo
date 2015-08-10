@@ -111,7 +111,15 @@ router.post('/', function(req, res, next) {
  *
  */
 router.put('/:id', function(req, res, next) {
-    res.json({test: 'success'});
+    var model = new Model(req);
+    model.modifyCustomer(req.params.id, function(err, consumer) {
+        logger.error(err);
+        if(err) {
+            next(InternalServerError(err));
+            return;
+        }
+        res.json(consumer);
+    });
 });
 
 module.exports = router;
