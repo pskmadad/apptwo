@@ -4,6 +4,7 @@
 	"description": "",
 	"order": [
 		"6edccd38-9c8f-97e7-9a54-71e2e59169a2",
+		"5cfbb389-b472-e660-6ee4-3d59d0c04360",
 		"79c546f4-5658-3d55-b047-39615e2dd51f",
 		"02c696c3-1a8d-2010-2e2e-74962928bf43",
 		"8e82cf51-6202-e1e5-c95c-ebadc9bb1130"
@@ -33,6 +34,24 @@
 			"collectionId": "eec44d47-e032-16be-f752-b77d49c062fb"
 		},
 		{
+			"id": "5cfbb389-b472-e660-6ee4-3d59d0c04360",
+			"headers": "X_APP_ORIGIN: }RtqdsFsnbdsx@qq}\nContent-Type: application/json\n",
+			"url": "http://localhost:3000/api/v1/consumers/?mobile=8940059377&uuid=100&channel=A",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "GET",
+			"data": [],
+			"dataMode": "params",
+			"version": 2,
+			"tests": "",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1439383920764,
+			"name": "Get Consumer By Mobile",
+			"description": "",
+			"collectionId": "eec44d47-e032-16be-f752-b77d49c062fb"
+		},
+		{
 			"id": "6edccd38-9c8f-97e7-9a54-71e2e59169a2",
 			"url": "http://localhost:3000/api/v1/consumers",
 			"method": "POST",
@@ -53,7 +72,7 @@
 		{
 			"id": "79c546f4-5658-3d55-b047-39615e2dd51f",
 			"headers": "X_APP_ORIGIN: }RtqdsFsnbdsx@qq}\nContent-Type: application/json\n",
-			"url": "http://localhost:3000/api/v1/consumers/45%27z%27%26%27z%27766%27z%27%3E%3F2663%3F510%27z%27",
+			"url": "http://localhost:3000/api/v1/consumers/5%3E'z'%26'z'766'z'%3E%3F2663%3F511'z'",
 			"preRequestScript": "",
 			"pathVariables": {},
 			"method": "GET",
@@ -63,8 +82,8 @@
 			"tests": "",
 			"currentHelper": "normal",
 			"helperAttributes": {},
-			"time": 1438969826502,
-			"name": "Get Consumer - Valid",
+			"time": 1439383902799,
+			"name": "Get Consumer  by ID- Valid",
 			"description": "",
 			"collectionId": "eec44d47-e032-16be-f752-b77d49c062fb"
 		},

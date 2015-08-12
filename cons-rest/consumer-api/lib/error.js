@@ -48,9 +48,15 @@ var Errors = function() {
         hasError = true;
         this.all.push(error);
     };
-    this.hasError = function(){
+    this.hasError = function() {
         return hasError;
     }
+}
+
+var UserExists = function(err) {
+    this.field = 'Consumer';
+    this.message = 'User exists in system';
+    this.code = 413;
 }
 
 module.exports.GenericError = GenericError;
@@ -60,3 +66,4 @@ module.exports.InvalidSizeError = InvalidSizeError;
 module.exports.Errors = Errors;
 module.exports.InternalServerError = InternalServerError;
 module.exports.NoDataFoundError = NoDataFoundError;
+module.exports.UserExists = UserExists;

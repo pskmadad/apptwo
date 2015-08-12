@@ -65,6 +65,19 @@ router.get('/:id', function(req, res, next) {
     });
 });
 
+router.get('/', function(req, res, next) {
+    console.log('Mobile:'+req.query.mobile +', UUID:'+req.query.uuid);
+    var model = new Model(req);
+    model.retrieveCustomerByMobile({mobile:req.query.mobile, uuid:req.query.uuid, channel: req.query.channel}, function(err, consumer) {
+        logger.error(err);
+        if(err) {
+            next(err.hasError() ? err : InternalServerError(err));
+            return;
+        }
+        res.json(consumer);
+    });
+});
+
 /**
  * @api {post} / Request to create a consumer account
  * @apiName PostConsumerDetails
@@ -85,7 +98,7 @@ router.post('/', function(req, res, next) {
     model.createCustomer(function(err, result, apiObj) {
         logger.error(err);
         if(err) {
-            next(InternalServerError(err));
+            next(err.hasError() ? err : InternalServerError(err));
             return;
         }
         var consumer = apiObj;
@@ -115,7 +128,7 @@ router.put('/:id', function(req, res, next) {
     model.modifyCustomer(req.params.id, function(err, consumer) {
         logger.error(err);
         if(err) {
-            next(InternalServerError(err));
+            next(err.hasError() ? err : InternalServerError(err));
             return;
         }
         res.json(consumer);

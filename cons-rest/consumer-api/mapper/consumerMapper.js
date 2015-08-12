@@ -92,6 +92,9 @@ var CHANNEL_TYPE = {
     OTHERS: 'O',
     isValid: function(input) {
         return input === this.WEB || input === this.ANDROID || input === this.IOS || input === this.WINDOWS || input === this.OTHERS;
+    },
+    isMobile: function(input) {
+        return input === this.ANDROID || input === this.IOS || input === this.WINDOWS;
     }
 };
 
