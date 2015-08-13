@@ -3,9 +3,11 @@
  */
 var express = require('express');
 var router = express.Router();
-var Model = require('../models/consumerModel').Consumer;
+var ConsumerModel = require('../models/consumerModel').Consumer;
+var AddressModel = require('../models/consumerAddressModel').ConsumerAddress;
 var InternalServerError = require('../lib/error').InternalServerError;
 var logger = require('../lib/logger').logger;
+var async = require('async');
 
 /**
  * @api {get} /consumers/:id/savings Request to retrieve savings information for a user
@@ -53,8 +55,8 @@ router.get('/:id/orders', function(req, res, next) {
  *
  */
 router.get('/:id', function(req, res, next) {
-    console.log('Data :'+req.params.id);
-    var model = new Model(req);
+    console.log('Data :' + req.params.id);
+    var model = new ConsumerModel(req);
     model.retrieveCustomer(req.params.id, function(err, consumer) {
         logger.error(err);
         if(err) {
@@ -66,9 +68,9 @@ router.get('/:id', function(req, res, next) {
 });
 
 router.get('/', function(req, res, next) {
-    console.log('Mobile:'+req.query.mobile +', UUID:'+req.query.uuid);
-    var model = new Model(req);
-    model.retrieveCustomerByMobile({mobile:req.query.mobile, uuid:req.query.uuid, channel: req.query.channel}, function(err, consumer) {
+    console.log('Mobile:' + req.query.mobile + ', UUID:' + req.query.uuid);
+    var model = new ConsumerModel(req);
+    model.retrieveCustomerByMobile({mobile: req.query.mobile, uuid: req.query.uuid, channel: req.query.channel}, function(err, consumer) {
         logger.error(err);
         if(err) {
             next(err.hasError() ? err : InternalServerError(err));
@@ -94,17 +96,32 @@ router.get('/', function(req, res, next) {
  *
  */
 router.post('/', function(req, res, next) {
-    var model = new Model(req);
-    model.createCustomer(function(err, result, apiObj) {
-        logger.error(err);
+    function handleResult(err, consumer) {
         if(err) {
             next(err.hasError() ? err : InternalServerError(err));
             return;
         }
-        var consumer = apiObj;
-        consumer.id = result ;
         res.json(consumer);
-    });
+    }
+
+    function createConsumer(callback) {
+        consumerModel.createCustomer(function(err, apiObj) {
+            if(err) {
+                return callback(err);
+            }
+            callback(null, apiObj);
+        });
+    }
+
+    function createAddress(consumer, callback){
+        var addressModel = new AddressModel(req);
+        console.log('Cons Id'+consumer.id);
+        addressModel.createAddress(consumer.id, callback);
+        callback(null, consumer);
+    }
+    var consumerModel = new ConsumerModel(req);
+    async.waterfall([createConsumer, createAddress], handleResult);
+
 });
 
 /**
@@ -124,7 +141,7 @@ router.post('/', function(req, res, next) {
  *
  */
 router.put('/:id', function(req, res, next) {
-    var model = new Model(req);
+    var model = new ConsumerModel(req);
     model.modifyCustomer(req.params.id, function(err, consumer) {
         logger.error(err);
         if(err) {

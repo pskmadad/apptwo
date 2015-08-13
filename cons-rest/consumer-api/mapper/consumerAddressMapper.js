@@ -2,8 +2,8 @@
  * Created by svaithiyanathan on 8/12/15.
  */
 
-var _ = require('underscore');
 var validator = new (require('../lib/validator'));
+var mergeFields = require('../lib/mapper').mergeFields;
 
 var DB_PARAMS = {
     ID : 'id',
@@ -53,9 +53,10 @@ var API_PARAMS = {
         validation : [validator.MOBILE]
     },
     USED_DATE : {
-        validation: [validator.NON_ACCEPTABLE]
+        validation: [validator.NON_ACCEPTABLE],
+        default: new Date()
     },
-    PREFERRED_ADDRESS : {default: new Date()}
+    PREFERRED_ADDRESS : {default: 'Y'}
 }
 
 module.exports.ADDRESS_FIELDS = mergeFields(DB_PARAMS, API_PARAMS);

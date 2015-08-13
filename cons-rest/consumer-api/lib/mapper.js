@@ -8,7 +8,7 @@ var _ = require('underscore');
 var db2Api = function(struct, dbObj) {
     var keys = Object.keys(struct);
     var domainObj = {};
-    logger.debug('DB :'+JSON.stringify(dbObj));
+    logger.debug('DB :' + JSON.stringify(dbObj));
     for(var i = 0; i < keys.length; i++) {
         var field = struct[keys[i]];
         //logger.debug('Field:'+JSON.stringify(field));
@@ -26,18 +26,24 @@ var req2Domain = function(struct, body, options) {
     //console.log('Step 2');
     var domainObj = {};
 
+    body = options.prefix ? body[options.prefix] : body;
+    if(!body){
+        return domainObj;
+    }
+
+    console.log('Prefix Body :'+ JSON.stringify(body));
     for(var i = 0; i < keys.length; i++) {
         var element = struct[keys[i]];
         //logger.debug(element.field);
 
-        var reqParam = body[element.field || element.mappedTo];
+        var reqParam = body[element.field];
         var validations = element.validation || [];
-        for(var j=0; j<validations.length; j++){
+        for(var j = 0; j < validations.length; j++) {
             //console.log('-->'+ element.field +':'+reqParam);
             validations[j](options.error, element.field, reqParam, options.reqType);
         }
 
-        if(typeof reqParam === 'undefined'){
+        if(typeof reqParam === 'undefined') {
             reqParam = options.useDefault ? element.default : undefined;
         }
         //logger.debug(reqParam)
@@ -49,7 +55,7 @@ var req2Domain = function(struct, body, options) {
     return domainObj;
 }
 
-var mergeFields = function (DB_PARAMS, API_PARAMS) {
+var mergeFields = function(DB_PARAMS, API_PARAMS) {
     var FINAL_FIELDS = {};
     var keys = Object.keys(DB_PARAMS);
     for(var i = 0; i < keys.length; i++) {

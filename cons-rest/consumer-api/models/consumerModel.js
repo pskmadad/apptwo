@@ -23,6 +23,18 @@ var TABLE_NAME = 'm_consumers';
 var INSERT_CONSUMER = 'INSERT INTO ' + TABLE_NAME + ' SET ?';
 var SELECT_CONSUMER = 'SELECT * FROM ' + TABLE_NAME + ' WHERE ';
 
+function _decryptCustomerId(id, errors) {
+    if(validator.isNull(id)) {
+        errors.add(new MissingParamError(FIELDS.ID.field));
+    }
+    var decryptedId = decryptKey(id, FIELDS.ID.cryptoKey);
+    console.log(decryptedId[FIELDS.EMAIL.mappedTo] + ':' + decryptedId[FIELDS.PRIMARY_MOBILE_NO.mappedTo] + ':' + decryptedId[FIELDS.UUID.mappedTo]);
+    if(decryptedId === undefined || (!decryptedId[FIELDS.EMAIL.mappedTo] && !decryptedId[FIELDS.PRIMARY_MOBILE_NO.mappedTo] && !decryptedId[FIELDS.UUID.mappedTo])) {
+        errors.add(new InvalidValueError(FIELDS.ID.field));
+    }
+    return decryptedId;
+}
+
 var Consumer = function(req) {
     var request = req;
     var errors = new Errors();
@@ -45,18 +57,6 @@ var Consumer = function(req) {
         }
     }
 
-    function decryptCustomerId(id) {
-        if(validator.isNull(id)) {
-            errors.add(new MissingParamError(FIELDS.ID.field));
-        }
-        var decryptedId = decryptKey(id, FIELDS.ID.cryptoKey);
-        console.log(decryptedId[FIELDS.EMAIL.mappedTo] + ':' + decryptedId[FIELDS.PRIMARY_MOBILE_NO.mappedTo] + ':' + decryptedId[FIELDS.UUID.mappedTo]);
-        if(decryptedId === undefined || (!decryptedId[FIELDS.EMAIL.mappedTo] && !decryptedId[FIELDS.PRIMARY_MOBILE_NO.mappedTo] && !decryptedId[FIELDS.UUID.mappedTo])) {
-            errors.add(new InvalidValueError(FIELDS.ID.field));
-        }
-        return decryptedId;
-    }
-
     function encryptCustomerId(consumer){
         return encryptKey([consumer[FIELDS.ID.mappedTo], consumer[FIELDS.EMAIL.mappedTo], consumer[FIELDS.UUID.mappedTo], consumer[FIELDS.PRIMARY_MOBILE_NO.mappedTo]]);
     }
@@ -72,6 +72,7 @@ var Consumer = function(req) {
             logger.debug('Err :' + userNotExists + ' ::: fetched consumer: ' + fetchedConsumer);
             //Error Should be there, indicate that user does not exists in our system
             if(userNotExists) {
+
                 //Set create defaults
                 consumer[FIELDS.ATTEMPT_COUNT.mappedTo] = 0;
                 consumer[FIELDS.CREATED_CHANNEL.mappedTo] = consumer[FIELDS.LAST_ACCESSED_CHANNEL.mappedTo];
@@ -83,8 +84,8 @@ var Consumer = function(req) {
                         return callback(err);
                     }
                     consumer[FIELDS.ID.field] = result;
-                    var id = encryptCustomerId(consumer);
-                    callback(err, encodeURIComponent(id), db2Api(FIELDS, consumer));
+                    consumer[FIELDS.ID.field] = encryptCustomerId(consumer);
+                    callback(err, db2Api(FIELDS, consumer));
                 }, [INSERT_CONSUMER], [consumer]);
             } else {
                 logger.debug('User exists in out system :' + fetchedConsumer[FIELDS.ID.mappedTo]);
@@ -115,7 +116,7 @@ var Consumer = function(req) {
 
     this.retrieveCustomer = function(id, callback) {
 
-        var decryptedId = decryptCustomerId(id);
+        var decryptedId = _decryptCustomerId(id, errors);
         if(errors.hasError()) {
             callback(errors);
             return;
@@ -145,7 +146,7 @@ var Consumer = function(req) {
         var consumerReq = req2Domain(FIELDS, request.body, options);
         logger.debug('Updating consumer :' + JSON.stringify(consumerReq));
 
-        var decryptedId = decryptCustomerId(id);
+        var decryptedId = _decryptCustomerId(id, errors);
         if(errors.hasError()) {
             logger.info('Consumer has error ' + consumerReq);
             callback(errors);
@@ -164,6 +165,11 @@ var Consumer = function(req) {
             that.retrieveCustomer(id, callback);
         }, 'UPDATE ' + TABLE_NAME + ' SET ' + setPart.query + ' WHERE ' + buildWhere.query, setPart.values);
     }
+
 }
 
 module.exports.Consumer = Consumer;
+
+module.exports.decryptConsumerId =  function(encryptedId, errors){
+    return _decryptCustomerId(encryptedId, errors);
+}
