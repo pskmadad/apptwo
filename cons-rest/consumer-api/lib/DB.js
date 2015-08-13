@@ -4,26 +4,35 @@
 
 var mysql = require('mysql');
 var logger = require('./logger').logger;
+var GenericError = require('./error').GenericError;
+var Errors = require('./error').Errors;
+var ERROR_CODE = 500;
+var ERROR_FIELD = 'DB_ERROR';
 
+function DbError(msg){
+    logger.warn('Error  '+msg);
+    return new GenericError(ERROR_CODE, ERROR_FIELD, msg);
+}
 var pool;
 //TODO: High chance of refactoring this function to remove duplicates
 function DB() {
 
     this.select = function(callback, query, params) {
+        var errors = new Errors();
         pool.getConnection(function(err, connection) {
             if(err) {
                 if(connection) {
                     connection.release();
                 }
-                logger.warn('Error while getting connection');
-                callback(err, null);
+                errors.add(DbError( err));
+                callback(errors, null);
                 return;
             }
             function resultHandler(error, rows) {
                 connection.release();
                 if(error) {
-                    logger.warn('Error while retrieving data');
-                    callback(err, null);
+                    errors.add(DbError( error));
+                    callback(errors, null);
                     return;
                 }
                 logger.debug('Rows are :' + JSON.stringify(rows));
@@ -37,91 +46,100 @@ function DB() {
             }
             connection.query(query, resultHandler);
 
-            connection.on('error', function(error) {
-                logger.warn('Error while retrieving data...');
-                callback(err, null);
-                return;
-            });
+            onConnectionError(connection, callback);
         });
     };
 
+    function onConnectionError(connection, callback) {
+        var errors = new Errors();
+        connection.on('error', function(error) {
+            release(connection);
+            errors.add(DbError( error));
+            callback(errors, null);
+        });
+    }
+
+    function release(conn) {
+        if(conn) {
+            conn.release();
+        }
+    }
+
     this.create = function(callback, query, data) {
+        var errors = new Errors();
         pool.getConnection(function(err, connection) {
-            function release(conn) {
-                if(conn) {
-                    conn.release();
+
+            function handleResult(error, result) {
+                if(error) {
+                    connection.rollback(function() {
+                        errors.add(DbError( error));
+                        callback(errors, null);
+                    });
+                } else {
+                    connection.commit(function(errQuery) {
+                        logger.debug('Commit executed...');
+                        if(errQuery) {
+                            connection.rollback(function() {
+                                errors.add(DbError( errQuery));
+                                callback(errors, null);
+                            });
+                        } else {
+                            release(connection);
+                            logger.debug('Record created with :' + (result.insertId ? result.insertId : result[0].insertId));
+                            callback(null, result.insertId ? result.insertId : result[0].insertId);
+                        }
+                    });
                 }
+
             }
 
-            if(err) {
+            if(err || query.length !== data.length) {
                 release(connection);
-                logger.warn('Error while getting connection for creating');
-                callback(err, null);
-                //return;
+                errors.add(DbError(err ? err : 'Invalid Query format'));
+                callback(errors, null);
             } else {
                 connection.beginTransaction(function(errTxn) {
                     if(errTxn) {
                         release(connection);
-                        callback(err);
+                        errors.add(DbError(err));
+                        callback(errors, null);
                     } else {
-                        connection.query(query, data, function(error, result) {
-                            if(error) {
-                                connection.rollback(function() {
-                                    logger.warn('Error while rollback - in creating');
-                                    callback(error, null);
-                                });
-                            } else {
-                                connection.commit(function(errQuery) {
-                                    if(errQuery) {
-                                        connection.rollback(function() {
-                                            callback(errQuery);
-                                        });
-                                    } else {
-                                        release(connection);
-                                        logger.debug('Record created with :' + result.insertId);
-                                        callback(null, result.insertId);
-                                    }
-                                });
-                            }
-                        });
+                        var formedQuery = '';
+                        for(var i = 0; i < query.length; i++) {
+                            formedQuery = formedQuery + mysql.format(query[i], data[i]) + ';';
+                        }
+                        console.log('FQ:'+formedQuery);
+                        connection.query(formedQuery, handleResult);
                     }
                 });
             }
-            connection.on('error', function(error) {
-                release(connection);
-                logger.warn('Error while getting connection for creating...');
-                callback(error, null);
-                //return;
-            });
+            onConnectionError(connection, callback);
         });
     };
 
     this.update = function(callback, query, data) {
+        var errors = new Errors();
         pool.getConnection(function(err, connection) {
             if(err) {
                 if(connection) {
                     connection.release();
                 }
-                logger.warn('Error while getting connection for updating');
-                callback(err, null);
+                errors.add(DbError( err));
+                callback(errors, null);
                 return;
             }
             connection.query(query, data, function(error, result) {
                 connection.release();
                 if(error) {
-                    logger.warn('Error while updating');
-                    callback(err, null);
+                    errors.add(DbError(error));
+                    callback(errors, null);
                     return;
                 }
                 logger.debug('Record updated are :' + result.changedRows);
                 callback(null, result.changedRows);
             });
 
-            connection.on('error', function(error) {
-                logger.warn('Error while getting connection for updating...');
-                callback(err, null);
-                return;
-            });
+            onConnectionError(connection, callback);
         });
     };
 
@@ -150,7 +168,8 @@ module.exports.initialize = function(config) {
         user: config.db.user,
         password: config.db.password,
         database: config.db.database,
-        debug: config.db.debug || false
+        debug: config.db.debug || false,
+        multipleStatements: true
     });
     logger.info('Created ' + config.db.connectionLimit + ' connections');
 };

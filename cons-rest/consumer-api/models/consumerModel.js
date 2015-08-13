@@ -75,18 +75,14 @@ var Consumer = function(req) {
                 obj[FIELDS.CREATED_BY.mappedTo] = obj[FIELDS.UPDATED_BY.mappedTo];
 
                 db.create(function(err, result) {
-                    var id = encryptKey([result, obj[FIELDS.EMAIL.mappedTo], obj[FIELDS.UUID.mappedTo], obj[FIELDS.PRIMARY_MOBILE_NO.mappedTo]]);
-                    //logger.debug(decryptKey(id));
-                    callback(err, encodeURIComponent(id), db2Api(FIELDS, obj));
-                    //return;
-                }, INSERT_CONSUMER, obj);
+                 var id = encryptKey([result, obj[FIELDS.EMAIL.mappedTo], obj[FIELDS.UUID.mappedTo], obj[FIELDS.PRIMARY_MOBILE_NO.mappedTo]]);
+                 callback(err, encodeURIComponent(id), db2Api(FIELDS, obj));
+                 }, [INSERT_CONSUMER], [obj]);
             } else {
                 logger.debug('User exists in out system :'+fetchedConsumer[FIELDS.ID.mappedTo]);
                 errors.add(new UserExists(encryptKey([fetchedConsumer[FIELDS.ID.mappedTo], fetchedConsumer[FIELDS.EMAIL.mappedTo], fetchedConsumer[FIELDS.UUID.mappedTo], fetchedConsumer[FIELDS.PRIMARY_MOBILE_NO.mappedTo]])));
                 logger.debug('Callback with error '+fetchedConsumer[FIELDS.ID.mappedTo]);
-                //throw errors;
                 callback(errors);
-                //return;
             }
         });
     };
