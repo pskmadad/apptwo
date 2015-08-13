@@ -42,6 +42,22 @@ create table m_consumers(
     updated_date datetime not null,
     last_logged_in datetime not null) engine = innodb;
 
+create table m_cons_address(
+    id bigint not null auto_increment primary key,
+    consumer_id int not null, /* address belong to which user */
+    name varchar(100), /* May be different person who is going to get the delivery */
+    building_name varchar(200), /* apartment name */
+    address varchar(500) not null, /* Full address except city & state */
+    city varchar(50) not null, /* Name of the city */
+    state varchar(10) not null, /* Name of the state */
+    pin int not null,  /* pincode */
+    latitude decimal(9,6), /* Lattitude of the address */
+    longitude decimal(9,6), /* Longitude of the address */
+    mobile_no varchar(15), /* Mobile number to reach out the customer, request can be made by one person but delivering to  different person */ 
+    used_date datetime not null, /* Date on which this address is used to deliver */
+    preferred_address char(1), /* Flag to identity that as preferred address for delivery */
+    foreign key(consumer_id) references m_consumers(id)) engine = innodb;
+
 create table m_items(
     id int not null auto_increment primary key, /* primary key of the item table */
     name varchar(250) not null, /* Name of the item */
@@ -78,21 +94,6 @@ create table t_order_items(
     quantity int not null, /* Quantity of the item */
     foreign key(order_id) references t_order(id),
     foreign key(item_id) references m_item(id)) engine = innodb;
-
-create table m_address(
-    id bigint not null auto_increment primary key,
-    consumer_id int not null, /* address belong to which user */
-    name varchar(100), /* May be different person who is going to get the delivery */
-    building_name varchar(200), /* apartment name */
-    address varchar(500) not null, /* Full address except city & state */
-    city varchar(50) not null, /* Name of the city */
-    state varchar(10) not null, /* Name of the state */
-    pin int not null,  /* pincode */
-    lattitude decimal(9,6), /* Lattitude of the address */
-    longitute decimal(9,6), /* Longitude of the address */
-    mobile_no varchar(15), /* Mobile number to reach out the customer, request can be made by one person but delivering to  different person */ 
-    preferred_address char(1), /* Flag to identity that as preferred address for delivery */
-    foreign key(consumer_id) references m_user(id)) engine = innodb;
 
 create table t_order_address(
     id bigint not null auto_increment primary key,

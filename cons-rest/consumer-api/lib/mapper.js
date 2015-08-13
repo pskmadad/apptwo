@@ -3,6 +3,7 @@
  */
 
 var logger = require('./logger').logger;
+var _ = require('underscore');
 
 var db2Api = function(struct, dbObj) {
     var keys = Object.keys(struct);
@@ -48,5 +49,20 @@ var req2Domain = function(struct, body, options) {
     return domainObj;
 }
 
+var mergeFields = function (DB_PARAMS, API_PARAMS) {
+    var FINAL_FIELDS = {};
+    var keys = Object.keys(DB_PARAMS);
+    for(var i = 0; i < keys.length; i++) {
+        var dest = {mappedTo: DB_PARAMS[keys[i]]};
+        if(API_PARAMS[keys[i]] && !API_PARAMS[keys[i]].field) {
+            dest['field'] = dest['mappedTo'];
+        }
+        FINAL_FIELDS[keys[i]] = _.extend(API_PARAMS[keys[i]] || {hideToApi: true, field: dest['mappedTo']}, dest);
+    }
+    console.log('Initialized Fields....');
+    return FINAL_FIELDS;
+}
+
 module.exports.db2Api = db2Api;
 module.exports.req2Domain = req2Domain;
+module.exports.mergeFields = mergeFields;

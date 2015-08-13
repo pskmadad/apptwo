@@ -1,8 +1,8 @@
 /**
  * Created by svaithiyanathan on 8/8/15.
  */
-var _ = require('underscore');
 var validator = new (require('../lib/validator'));
+var mergeFields = require('../lib/mapper').mergeFields;
 
 var DB_PARAMS = {
     ID: 'id',
@@ -30,7 +30,7 @@ var DB_PARAMS = {
 var API_PARAMS = {
     ID: {
         cryptoKey: [DB_PARAMS.ID, DB_PARAMS.EMAIL, DB_PARAMS.UUID, DB_PARAMS.PRIMARY_MOBILE_NO],
-        nonEditable: true
+        validation : [validator.INSERT_NOT_ALLOWED]
     },
     PRIMARY_MOBILE_NO: {
         field: 'mobile_no',
@@ -98,21 +98,6 @@ var CHANNEL_TYPE = {
     }
 };
 
-function initialize() {
-    FINAL_FIELDS = {};
-    var keys = Object.keys(DB_PARAMS);
-    for(var i = 0; i < keys.length; i++) {
-        var dest = {mappedTo: DB_PARAMS[keys[i]]};
-        if(API_PARAMS[keys[i]] && !API_PARAMS[keys[i]].field) {
-            dest['field'] = dest['mappedTo'];
-        }
-        FINAL_FIELDS[keys[i]] = _.extend(API_PARAMS[keys[i]] || {hideToApi: true, field: dest['mappedTo']}, dest);
-    }
-    console.log('Initialized Fields....');
-    return FINAL_FIELDS;
-}
 
-var FINAL_FIELDS;
-
-module.exports.FIELDS = initialize();
+module.exports.FIELDS = mergeFields(DB_PARAMS, API_PARAMS);
 module.exports.CHANNEL_TYPE = CHANNEL_TYPE;

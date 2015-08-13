@@ -47,29 +47,51 @@ function DB() {
 
     this.create = function(callback, query, data) {
         pool.getConnection(function(err, connection) {
-            if(err) {
-                if(connection) {
-                    connection.release();
+            function release(conn) {
+                if(conn) {
+                    conn.release();
                 }
+            }
+
+            if(err) {
+                release(connection);
                 logger.warn('Error while getting connection for creating');
                 callback(err, null);
-                return;
+                //return;
+            } else {
+                connection.beginTransaction(function(errTxn) {
+                    if(errTxn) {
+                        release(connection);
+                        callback(err);
+                    } else {
+                        connection.query(query, data, function(error, result) {
+                            if(error) {
+                                connection.rollback(function() {
+                                    logger.warn('Error while rollback - in creating');
+                                    callback(error, null);
+                                });
+                            } else {
+                                connection.commit(function(errQuery) {
+                                    if(errQuery) {
+                                        connection.rollback(function() {
+                                            callback(errQuery);
+                                        });
+                                    } else {
+                                        release(connection);
+                                        logger.debug('Record created with :' + result.insertId);
+                                        callback(null, result.insertId);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
             }
-            connection.query(query, data, function(error, result) {
-                connection.release();
-                if(error) {
-                    logger.warn('Error while creating');
-                    callback(error, null);
-                    return;
-                }
-                logger.debug('Record created with :' + result.insertId);
-                callback(null, result.insertId);
-            });
-
             connection.on('error', function(error) {
+                release(connection);
                 logger.warn('Error while getting connection for creating...');
                 callback(error, null);
-                return;
+                //return;
             });
         });
     };
