@@ -116,8 +116,15 @@ router.post('/', function(req, res, next) {
     function createAddress(consumer, callback){
         var addressModel = new AddressModel(req);
         console.log('Cons Id'+consumer.id);
-        addressModel.createAddress(consumer.id, callback);
-        callback(null, consumer);
+        addressModel.createAddress(consumer.id, function(err, address){
+            if(err){
+                consumer.address = {errors: err.all};
+                return callback(null, consumer);
+            }
+            consumer.address = address;
+            callback(null, consumer);
+        });
+        //callback(null, consumer);
     }
     var consumerModel = new ConsumerModel(req);
     async.waterfall([createConsumer, createAddress], handleResult);

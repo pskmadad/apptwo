@@ -39,7 +39,7 @@ var req2Domain = function(struct, body, options) {
         var reqParam = body[element.field];
         var validations = element.validation || [];
         for(var j = 0; j < validations.length; j++) {
-            //console.log('-->'+ element.field +':'+reqParam);
+            //console.log('-->'+element.field+reqParam);
             validations[j](options.error, element.field, reqParam, options.reqType);
         }
 

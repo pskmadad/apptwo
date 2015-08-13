@@ -11,6 +11,7 @@ var DB_PARAMS = {
     NAME : 'name',
     BUILDING_NAME : 'building_name',
     ADDRESS : 'address',
+    AREA : 'area',
     CITY : 'city',
     STATE : 'state',
     PIN : 'pin',
@@ -36,6 +37,9 @@ var API_PARAMS = {
         validation : [validator.INSERT_REQUIRED, validator.NON_EDITABLE]
     },
     ADDRESS : {
+        validation : [validator.INSERT_REQUIRED, validator.NON_EDITABLE]
+    },
+    AREA : {
         validation : [validator.INSERT_REQUIRED, validator.NON_EDITABLE]
     },
     CITY : {

@@ -20,9 +20,16 @@ var ConsumerAddress = function(req) {
         if(errors.hasError()){
             return callback(new InvalidValueError(FIELDS.CONS_ID.field));
         }
-        request.body[FIELDS.CONS_ID.field] = consumer[CONS_FIELDS.ID.field];
+        if(request.body[options.prefix]){
+            request.body[options.prefix][FIELDS.CONS_ID.field] = consumer[CONS_FIELDS.ID.field];
+        }
+        console.log('Cons Id::: '+request.body['address'][FIELDS.CONS_ID.field]);
         var address = req2Domain(FIELDS, request.body, options);
+        if(errors.hasError()){
+            return callback(errors);
+        }
         logger.debug('Address :'+JSON.stringify(address));
+        callback(null, address);
     }
 };
 

@@ -48,6 +48,7 @@ create table m_cons_address(
     name varchar(100), /* May be different person who is going to get the delivery */
     building_name varchar(200), /* apartment name */
     address varchar(500) not null, /* Full address except city & state */
+    area varchar(100) not null, /* Area which will be used for searching merchant */
     city varchar(50) not null, /* Name of the city */
     state varchar(10) not null, /* Name of the state */
     pin int not null,  /* pincode */
