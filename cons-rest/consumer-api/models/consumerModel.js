@@ -57,31 +57,39 @@ var Consumer = function(req) {
         return decryptedId;
     }
 
+    function encryptCustomerId(consumer){
+        return encryptKey([consumer[FIELDS.ID.mappedTo], consumer[FIELDS.EMAIL.mappedTo], consumer[FIELDS.UUID.mappedTo], consumer[FIELDS.PRIMARY_MOBILE_NO.mappedTo]]);
+    }
+
     this.createCustomer = function(callback) {
         var options = {error: errors, reqType: 'new', useDefault: true};
-        var obj = req2Domain(FIELDS, request.body, options);
-        logger.debug('Consumer :' + JSON.stringify(obj));
+        var consumer = req2Domain(FIELDS, request.body, options);
+        logger.debug('Consumer :' + JSON.stringify(consumer));
         //Do validation
-        createValidation(obj);
-        var checkUserExists = {primary_mobile_no: obj[FIELDS.PRIMARY_MOBILE_NO.mappedTo], uuid: obj[FIELDS.UUID.mappedTo]};
+        createValidation(consumer);
+        var checkUserExists = {primary_mobile_no: consumer[FIELDS.PRIMARY_MOBILE_NO.mappedTo], uuid: consumer[FIELDS.UUID.mappedTo]};
         _retrieveCustomer(checkUserExists, function(userNotExists, fetchedConsumer) {
-            logger.debug('Err :'+userNotExists +' ::: fetched consumer: '+fetchedConsumer);
+            logger.debug('Err :' + userNotExists + ' ::: fetched consumer: ' + fetchedConsumer);
             //Error Should be there, indicate that user does not exists in our system
             if(userNotExists) {
                 //Set create defaults
-                obj[FIELDS.ATTEMPT_COUNT.mappedTo] = 0;
-                obj[FIELDS.CREATED_CHANNEL.mappedTo] = obj[FIELDS.LAST_ACCESSED_CHANNEL.mappedTo];
-                obj[FIELDS.CREATED_DATE.mappedTo] = obj[FIELDS.UPDATED_DATE.mappedTo];
-                obj[FIELDS.CREATED_BY.mappedTo] = obj[FIELDS.UPDATED_BY.mappedTo];
+                consumer[FIELDS.ATTEMPT_COUNT.mappedTo] = 0;
+                consumer[FIELDS.CREATED_CHANNEL.mappedTo] = consumer[FIELDS.LAST_ACCESSED_CHANNEL.mappedTo];
+                consumer[FIELDS.CREATED_DATE.mappedTo] = consumer[FIELDS.UPDATED_DATE.mappedTo];
+                consumer[FIELDS.CREATED_BY.mappedTo] = consumer[FIELDS.UPDATED_BY.mappedTo];
 
                 db.create(function(err, result) {
-                 var id = encryptKey([result, obj[FIELDS.EMAIL.mappedTo], obj[FIELDS.UUID.mappedTo], obj[FIELDS.PRIMARY_MOBILE_NO.mappedTo]]);
-                 callback(err, encodeURIComponent(id), db2Api(FIELDS, obj));
-                 }, [INSERT_CONSUMER], [obj]);
+                    if(err){
+                        return callback(err);
+                    }
+                    consumer[FIELDS.ID.field] = result;
+                    var id = encryptCustomerId(consumer);
+                    callback(err, encodeURIComponent(id), db2Api(FIELDS, consumer));
+                }, [INSERT_CONSUMER], [consumer]);
             } else {
-                logger.debug('User exists in out system :'+fetchedConsumer[FIELDS.ID.mappedTo]);
-                errors.add(new UserExists(encryptKey([fetchedConsumer[FIELDS.ID.mappedTo], fetchedConsumer[FIELDS.EMAIL.mappedTo], fetchedConsumer[FIELDS.UUID.mappedTo], fetchedConsumer[FIELDS.PRIMARY_MOBILE_NO.mappedTo]])));
-                logger.debug('Callback with error '+fetchedConsumer[FIELDS.ID.mappedTo]);
+                logger.debug('User exists in out system :' + fetchedConsumer[FIELDS.ID.mappedTo]);
+                errors.add(new UserExists(encryptCustomerId(fetchedConsumer)));
+                logger.debug('Callback with error ' + fetchedConsumer[FIELDS.ID.mappedTo]);
                 callback(errors);
             }
         });
@@ -95,7 +103,7 @@ var Consumer = function(req) {
             if(consumer && consumer.length === 1 && Object.keys(consumer[0]).length > 0) {
                 var fetchedConsumer = consumer[0];
                 //logger.debug('Cons:'+consumer[0]);
-                fetchedConsumer[FIELDS.ID.field] = encodeURIComponent(encryptKey([fetchedConsumer[FIELDS.ID.mappedTo], fetchedConsumer[FIELDS.EMAIL.mappedTo], fetchedConsumer[FIELDS.UUID.mappedTo], fetchedConsumer[FIELDS.PRIMARY_MOBILE_NO.mappedTo]]));
+                fetchedConsumer[FIELDS.ID.field] = encodeURIComponent(encryptCustomerId(fetchedConsumer));
                 logger.debug(JSON.stringify(fetchedConsumer));
                 callback(err, db2Api(FIELDS, fetchedConsumer));
             } else {
@@ -127,7 +135,7 @@ var Consumer = function(req) {
             callback(errors);
             return;
         }
-        _retrieveCustomer({primary_mobile_no:param.mobile, uuid: param.uuid}, callback);
+        _retrieveCustomer({primary_mobile_no: param.mobile, uuid: param.uuid}, callback);
     };
 
     this.modifyCustomer = function(id, callback) {
