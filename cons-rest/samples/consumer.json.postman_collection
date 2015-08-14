@@ -7,7 +7,8 @@
 		"5cfbb389-b472-e660-6ee4-3d59d0c04360",
 		"79c546f4-5658-3d55-b047-39615e2dd51f",
 		"02c696c3-1a8d-2010-2e2e-74962928bf43",
-		"8e82cf51-6202-e1e5-c95c-ebadc9bb1130"
+		"8e82cf51-6202-e1e5-c95c-ebadc9bb1130",
+		"78813f7e-dd4b-a9b1-8cef-1761b8740046"
 	],
 	"folders": [],
 	"timestamp": 1438952254239,
@@ -68,6 +69,25 @@
 			"descriptionFormat": "html",
 			"collectionId": "eec44d47-e032-16be-f752-b77d49c062fb",
 			"rawModeData": "{\r\n  \"mobile_no\" : \"8940059376\",\r\n  \"uuid\" : \"100\",\r\n  \"channel\":\"A\",\r\n  \"user\":\"rest console\"\r\n}"
+		},
+		{
+			"id": "78813f7e-dd4b-a9b1-8cef-1761b8740046",
+			"headers": "X_APP_ORIGIN: }RtqdsFsnbdsx@qq}\nContent-Type: application/json\n",
+			"url": "http://localhost:3000/api/v1/consumers",
+			"preRequestScript": "",
+			"pathVariables": {},
+			"method": "POST",
+			"data": [],
+			"dataMode": "raw",
+			"version": 2,
+			"tests": "",
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"time": 1439486018785,
+			"name": "Create Consumer With Address",
+			"description": "",
+			"collectionId": "eec44d47-e032-16be-f752-b77d49c062fb",
+			"rawModeData": "{\r\n  \"mobile_no\" : \"9000000000\",\r\n  \"uuid\" : \"100\",\r\n  \"channel\":\"A\",\r\n  \"user\":\"rest console\",\r\n  \"address\":{\r\n      \"city\" : \"Chennai\",\r\n      \"state\" : \"TamilNadu\"\r\n  }\r\n}"
 		},
 		{
 			"id": "79c546f4-5658-3d55-b047-39615e2dd51f",
