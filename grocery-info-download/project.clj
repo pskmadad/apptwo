@@ -8,7 +8,7 @@
                  [org.jsoup/jsoup "1.8.3"]
                  [org.clojure/data.csv "0.1.3"]
                  ]
-  ;:plugins [[lein-autoreload "0.1.0"]]
+  :plugins [[lein-cljfmt "0.3.0"]]
   :main ^:skip-aot grocery-info-download.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

@@ -4,9 +4,7 @@
   (:require [clojure.java.io :as io])
   (:require [clojure.data.csv :as csv]))
 
-
 (defn extract-item-details [] (cb/extract-item-details))
-
 
 (defn generate-price-report [name coll]
   (with-open [w (io/writer name)]
@@ -17,10 +15,14 @@
    (:mrp item)
    (:category item)
    (:subcategory item)
-   (:source item) ])
+   (:source item)])
 
 (defn -main
   [& args]
-  (let [items (extract-item-details)
-        rows (map get-item-row items)]
-    (generate-price-report "mrp.csv" rows)))
+  (do
+    (time (let [items (extract-item-details)
+                rows (map get-item-row items)]
+            (generate-price-report "mrp.csv" rows)))
+    (shutdown-agents)
+    (println "Done!!!")))
+
