@@ -1,0 +1,6 @@
+Run the below commands one by one
+------------------------------------
+phonegap platform add android
+phonegap plugins add com.brodysoft.sqlitePlugin
+phonegap plugins add cordova-plugin-device
+phonegap plugins add cordova-plugin-whitelist 1.0.0
