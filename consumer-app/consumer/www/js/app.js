@@ -62,10 +62,12 @@ $(document).ready(function(){
 		publish();
 	});
 
+    var publishNotCalled = true;
 	function publish(){
 		//Got all the required resources to start my application
-		if(consumerReady && databaseReady){
+		if(publishNotCalled && consumerReady && databaseReady){
 			console.log('Apna Bag Read...');
+            publishNotCalled = false;
 			$(document).trigger('apna:ApnaBagReady');
 		}
 	}
