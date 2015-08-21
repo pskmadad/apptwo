@@ -25,7 +25,7 @@ $(document).ready(function() {
                 codes: [],
                 size: 1
             };
-            var consumer = {mobile: Math.round(Math.random() * 10000000000), uuid: 'ABBC', pincodes: pincodes, prefer: 'Y'};
+            var consumer = {mobile: Math.round(Math.random() * 10000000000), uuid: device.uuid, pincodes: pincodes, prefer: 'Y'};
             app.consumer.save(function(err, savedCons){
                 console.log('Saved Cons :'+savedCons);
                 navigateToProduct(savedCons);
