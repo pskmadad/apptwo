@@ -18,14 +18,18 @@ $(document).ready(function() {
     }
 
     function showLanding() {
-        $('#newConsumer').text('Consumer is new');
-        $('#newConsumer').click(function() {
+		$('.ui-slider').width(180);
+        
+        $('#proceed').click(function() {
+			var mobileNumber = $("#phoneNumber").val();
+			var pincode = $("#pincode").val();
             var pincodes = {
-                pin: '603103',
+                pin: pincode,
                 codes: [],
                 size: 1
             };
-            var consumer = {mobile: Math.round(Math.random() * 10000000000), uuid: device.uuid, pincodes: pincodes, prefer: 'Y'};
+            //var consumer = {mobile: Math.round(Math.random() * 10000000000), uuid: device.uuid, pincodes: pincodes, prefer: 'Y'};
+			var consumer = {mobile: mobileNumber, uuid: device.uuid, pincodes: pincodes, prefer: 'Y'};
             app.consumer.save(function(err, savedCons){
                 console.log('Saved Cons :'+savedCons);
                 navigateToProduct(savedCons);
@@ -33,12 +37,10 @@ $(document).ready(function() {
         });
     }
 
-    function createConsumer() {
-
-    }
 
     function navigateToProduct(consumer) {
         $('#newConsumer').text('Consumer is present in our system');
-        $(document).trigger('apna:ShowProductPage', consumer);
+		 $.mobile.changePage( "#productList", { transition: "none"} ); 
+       // $(document).trigger('apna:ShowProductPage', consumer);
     }
 });

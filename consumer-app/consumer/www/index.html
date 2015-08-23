@@ -48,22 +48,60 @@
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
         <link rel="stylesheet" type="text/css" href="css/index.css" />
-        <title>Apna Bag</title>
-    </head>
-    <body>
-        <div class="app">
-            <div id="landingPage" class="blink">
-				<div id="newConsumer"/>
-            </div>
-        </div>
+        <link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.4.5.min.css" />
         <script type="text/javascript" src="cordova.js"></script>
         <script type="text/javascript" src="js/jquery-1.11.3.js"></script>
         <script type="text/javascript" src="js/jquery.mobile-1.4.5.js"></script>
         <script type="text/javascript" src="js/app.js"></script>
+
+        
         <script type="text/javascript" src="js/database.js"></script>
-		<!-- All Adapters -->
+        <!-- All Adapters -->
         <script type="text/javascript" src="js/domain/consumer.js"></script>
-		<!-- All Pages -->
+        <!-- All Pages -->
         <script type="text/javascript" src="js/page/landing.js"></script>
+
+        <title>Apna Bag</title>
+    </head>
+    <body>
+<!--         <div class="app1">
+            <div id="landingPage" class="blink">
+				<div id="newConsumer"/>
+            </div>
+        </div> -->
+        <div data-role="page" id="login">
+
+            <div data-role="header">
+                <h1>Apna Bag</h1>
+            </div><!-- /header -->
+
+            <div role="main" class="ui-content">
+               <input name="phoneNumber" id="phoneNumber" value="" placeholder="Enter Phone number"  type="number">
+               <input name="pincode" id="pincode" value="" placeholder="Pincode"  type="number">
+
+               <select id="pinOrLoc" name="pinOrLoc" data-role="slider"  data-wrapper-class="custom-size-flipswitch" >
+					<option value="pin">Pincode</option>
+					<option value="loc">Location</option>
+				</select>             
+				   
+				<input type="button" value="Proceed" id="proceed"/>
+
+            </div><!-- /content -->
+
+          
+        </div><!-- /page -->
+
+        <!-- Start of second page -->
+        <div data-role="page" id="productList">
+
+
+            <div role="main" class="ui-content">
+			<input name="search" id="search" value="" type="search">
+            </div><!-- /content -->
+
+
+        </div><!-- /page -->
+
+
     </body>
 </html>
