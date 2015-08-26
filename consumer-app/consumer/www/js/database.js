@@ -1,15 +1,23 @@
 $(document).ready(function(){
 
 	$(document).on('apna:initialize', function(){
+        //Initialize Database
 		$_apna['db'] = window.sqlitePlugin.openDatabase({name: "apnabagconsumer.db", createFromLocation: 1});
+
+        //Upgrade DB seamlessly
         setDBToLatestVersion();
+
+        //DB is upto the state and it is ready for serving
 		$(document).trigger('apna:DatabaseReady');
 	});
 
     var SELECT_VERSION = 'SELECT max(version) as version FROM version;';
     var CREATE_VERSION = 'CREATE TABLE version( \'id\' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, \'version\' INTEGER NOT NULL UNIQUE, \'execute_date\' NUMERIC NOT NULL);'
 
+    //Current version of the database, Keep update its version whenever new changes are added
     var CURRENT_VERSION = 1;
+
+    //Version Specific SQLs
     var VERSION_1 = [
         //Copy the data from consumer to new consumer structure
         'ALTER TABLE consumer RENAME TO consumer_old;',
@@ -19,7 +27,11 @@ $(document).ready(function(){
         //Update version number
         "INSERT INTO version (version, execute_date) VALUES(1, datetime('now','UTC'));"
     ];
+
+    //Master list contains all versions
     var VERSIONS = [VERSION_1];
+
+    //Some issue with version system. Either current version is not updated or master list is not updated
     if(CURRENT_VERSION !== VERSIONS.length){
         console.error('Error in versioning....................');
     }
@@ -28,6 +40,8 @@ $(document).ready(function(){
         $_apna.db.transaction(function(tx){
             function updateStructure(data, versionArr) {
                 if(data < CURRENT_VERSION) {
+                    //Remove already applied versions from the master list
+                    versionArr = versionArr.slice(data, versionArr.length);
                     for(var i = 0; i < versionArr.length; i++) {
                         for(var j = 0; j < versionArr[i].length; j++) {
                             console.log('Executing...'+versionArr[i][j]);
@@ -63,6 +77,5 @@ $(document).ready(function(){
             console.log('Error in tx :'+e);
         });
     }
-
 
 });
