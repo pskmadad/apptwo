@@ -1,4 +1,11 @@
+var gapReady = $.Deferred();
+var jqmReady = $.Deferred();
+
+
+
 var $_apna = {
+	
+
 
     // Application Constructor
     initialize: function() {
@@ -23,6 +30,7 @@ var $_apna = {
 		$(document).ready(function(){
 			console.log('Device is ready');
 			//All the files will add respective objects to apna object
+			gapReady.resolve();
 			$(document).trigger('apna:initialize');
 		});		
     },
@@ -43,6 +51,26 @@ var $_apna = {
 };
 
 $_apna.initialize();
+
+/**
+* Catch "mobileinit" event which is fired when a jQueryMobile is loaded.
+* Ensure that we respond to this event only once.
+*/
+$(document).one("mobileinit", function(){
+	jqmReady.resolve();
+});
+
+/**
+* Run your App Logic only when both frameworks have loaded
+*/
+$.when(jqmReady).then(myAppLogic);
+
+// App Logic
+function myAppLogic()
+{
+	alert("applogic1111111");
+}
+
 
 $(document).ready(function(){
 

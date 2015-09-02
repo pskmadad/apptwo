@@ -1,0 +1,17 @@
+/*=====Login Screen=====*/
+.login{background:url(../img/gray-bg.png) repeat 0 0 #ededed;}
+.login .ui-header{background:none;border:none;}
+.login .ui-header h1{height:100px;margin:20px auto 10px;padding:0;background:url(../img/logo-large.png) no-repeat center 0;}
+.login .ui-content{margin:0 15px 30px;padding:15px 20px 20px;background:url(../img/login-box-bg.png) repeat 0 0;}
+.login .ui-content .ui-input-text{border-radius:0;border:none;margin-bottom:18px;}
+.login .ui-content .ui-input-text input[type='text']{border-radius:0;padding:10px 0 10px 60px;background:#eeeeee;border:1px solid #BDBBBB;}
+.login .ui-content .ui-input-btn{width:134px;margin:18px auto 0;padding:7px 0;border-radius:0;border-color:#ff9934;}
+.login .ui-content .ui-input-btn input[type='button']{text-indent:inherit;font-size:17px;opacity:1;color:#fff;border-radius:0;background:#ff9934;border:1px solid #fff;}
+.login .ui-content .ui-input-btn input[type='button']:hover{background:#f98614;}
+.login .ui-footer{height:150px;margin-bottom:20px;background:url(../img/coupon.png) no-repeat center 0;border:none;}
+.login .ui-content .ui-input-text input.phone-no{background:url(../img/login-sprite.png) no-repeat 5px -2px #eeeeee;}
+.login .ui-content .ui-input-text input.pin-code{background:url(../img/login-sprite.png) no-repeat 5px -52px #eeeeee;}
+.login .ui-content .ui-input-text input.phone-no.enable,.login .ui-content .ui-input-text input.phone-no:focus{background:url(../img/login-sprite.png) no-repeat 5px -103px;}
+.login .ui-content .ui-input-text input.pin-code.enable,.login .ui-content .ui-input-text input.pin-code:focus{background:url(../img/login-sprite.png) no-repeat 5px -152px;}
+.login .ui-content .ui-input-text input.phone-no.error{border:1px solid #E63C3C;background:url(../img/login-sprite.png) no-repeat 5px -203px;color:#E63C3C;}
+.login .ui-content .ui-input-text input.pin-code.error{border:1px solid #E63C3C;background:url(../img/login-sprite.png) no-repeat 5px -252px;color:#E63C3C;}

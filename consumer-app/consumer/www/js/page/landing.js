@@ -1,16 +1,30 @@
+
 $(document).ready(function() {
 
     //Search in local variable will be faster
     var app;
 
     $(document).on('apna:ApnaBagReady', initialize);
-
+	console.log($.mobile.autoInitializePage );
+	
+	
     function initialize() {
+		
+		alert("initialize");
         app = $_apna;
-        determinePage();
+		splashPage();
     }
+	
+	function splashPage(){
+		
+		$(function() {
+			setTimeout(determinePage, 2000);
+		});
+	}
+	
 
     function determinePage() {
+		alert("determinePage");
         app.consumer.preferred(function(err, hasAccount, consumer) {
             console.log('Has account :' + JSON.stringify(consumer));
             hasAccount ? navigateToProduct(consumer) : showLanding();
@@ -18,6 +32,8 @@ $(document).ready(function() {
     }
 
     function showLanding() {
+		$.mobile.initializePage();
+		
 		$('.ui-slider').width(180);
         
         $('#proceed').click(function() {
