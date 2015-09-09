@@ -28,6 +28,10 @@ $(document).ready(function(){
         "INSERT INTO version (version, execute_date) VALUES(1, datetime('now','UTC'));"
     ];
 
+    var VERSION_2 = [
+        'CREATE TABLE product (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, category TEXT NOT NULL, subcategory TEXT, name TEXT, tags TEXT, quantity TEXT);'
+    ];
+
     //Master list contains all versions
     var VERSIONS = [VERSION_1];
 
