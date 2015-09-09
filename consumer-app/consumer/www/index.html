@@ -52,14 +52,20 @@
         <link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.4.5.min.css" />
         <script type="text/javascript" src="cordova.js"></script>
         <script type="text/javascript" src="js/jquery-1.11.3.js"></script>
+		<script>
+			  $(document).on("mobileinit",function() {
+				alert("init")
+				$.mobile.autoInitializePage = false;
+			  });
+		</script>
+        <script type="text/javascript" src="js/jquery.mobile-1.4.5.js"></script>
 		<script type="text/javascript" src="js/app.js"></script>
+		<!-- All Pages -->
 		<script type="text/javascript" src="js/page/landing.js"></script>
 		<script type="text/javascript" src="js/database.js"></script>
+		<script type="text/javascript" src="js/page/products.js"></script>
         <!-- All Adapters -->
         <script type="text/javascript" src="js/domain/consumer.js"></script>
-        <!-- All Pages -->
-		
-        <script type="text/javascript" src="js/jquery.mobile-1.4.5.js"></script>
         
 
         
@@ -69,16 +75,17 @@
         <title>Apna Bag</title>
     </head>
     <body>
-	<div data-role="page" class="login"> 
+	<div data-role="page" class="login" id="login" > 
 		<div data-role="header"><h1></h1></div> 
 		<div data-role="content">
-			<input type="text" placeholder="Enter Phone Number" class="phone-no"/> <!--class="enable" "error" -->
-			<input type="text" placeholder="Enter Pin Code" class="pin-code" /> <!--class="enable" "error" -->
+			<input type="text" id="pNumber" placeholder="Enter Phone Number" class="phone-no"/> <!--class="enable" "error" -->
+			<input type="text" id="pCode" placeholder="Enter Pin Code" class="pin-code" /> <!--class="enable" "error" -->
 			<input type="button" id="proceed" value="Continue &#187;" />
 		</div> 
-
 		<div data-role="footer"></div> 
 	</div> 
+
+ 
 		<div data-role="page" id="productList">
 				test
 		</div>
