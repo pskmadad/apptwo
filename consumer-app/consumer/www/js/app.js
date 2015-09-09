@@ -1,6 +1,9 @@
+$(document).bind("mobileinit", function(){
+    $.mobile.autoInitializePage = false;
+});
 
 var $_apna = {
-
+    ready : false,
     // Application Constructor
     initialize: function() {
         this.bindEvents();
@@ -21,6 +24,7 @@ var $_apna = {
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
     publishDeviceReady: function() {
+        $_apna.ready = true;
 		$(document).ready(function(){
 			
 			console.log('Device is Ready...');
@@ -48,7 +52,7 @@ $_apna.initialize();
 
 $(document).ready(function(){
 
-	//Wait for consumer available
+    //Wait for consumer available
 	var consumerReady = false;
 	$(document).on('apna:ConsumerReady', function(){
 		console.log('Consumer ready...');
@@ -68,7 +72,7 @@ $(document).ready(function(){
 	function publish(){
 		//Got all the required resources to start my application
 		if(publishNotCalled && consumerReady && databaseReady){
-			console.log('Apna Bag Read...');
+			console.log('Apna Bag Read...22');
             publishNotCalled = false;
 			$(document).trigger('apna:ApnaBagReady');
 		}

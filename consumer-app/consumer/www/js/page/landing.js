@@ -8,7 +8,7 @@ $(document).ready(function() {
 
     $(document).on('apna:ApnaBagReady', initialize);
 
-    function initialize() {	
+    function initialize() {
         app = $_apna;
 		determinePage();
 
@@ -23,10 +23,9 @@ $(document).ready(function() {
     }
 
     function showLanding() {
-		//window.location.hash = "landing";
-		//$.mobile.initializePage();
-		
-        
+		window.location.hash = "login";
+		$.mobile.initializePage();
+
 		$(document).on('click','#proceed',function() {
 
             var consumer = {mobile: $("#pNumber").val(), uuid: device.uuid, pincode: $("#pCode").val(), prefer: '1'};
@@ -46,6 +45,9 @@ $(document).ready(function() {
     }
 
     function navigateToProduct(consumer) {
+        window.location.hash = "productList";
+        $.mobile.initializePage();
+
         $(document).trigger('apna:ShowProductPage', consumer);
     }
 });
