@@ -11,8 +11,8 @@ $(document).ready(function(){
 		$(document).trigger('apna:DatabaseReady');
 	});
 
-    var SELECT_VERSION = 'SELECT max(version) as version FROM version;';
-    var CREATE_VERSION = 'CREATE TABLE version( \'id\' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, \'version\' INTEGER NOT NULL UNIQUE, \'execute_date\' NUMERIC NOT NULL);'
+    var SELECT_VERSION = 'SELECT v FROM version order by id desc;';
+    var CREATE_VERSION = "CREATE TABLE version( 'id' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, 'v' INTEGER NOT NULL UNIQUE, 'execute_date' NUMERIC NOT NULL);"
 
     //Current version of the database, Keep update its version whenever new changes are added
     var CURRENT_VERSION = 1;
@@ -23,9 +23,11 @@ $(document).ready(function(){
         'ALTER TABLE consumer RENAME TO consumer_old;',
         'CREATE TABLE consumer ( id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, mobile TEXT NOT NULL UNIQUE, uuid TEXT NOT NULL,	prefer	INTEGER NOT NULL, pincode INTEGER NOT NULL, sync TEXT, codes TEXT);',
         "INSERT INTO consumer (id, mobile, uuid, prefer, sync, pincode, codes) SELECT id, mobile, uuid, prefer, sync, '000000', pincodes FROM consumer_old;",
+        "UPDATE consumer SET prefer = 1 WHERE prefer = 'Y';",
+        "UPDATE consumer SET prefer = 0 WHERE prefer = 'N';",
         'drop table consumer_old;',
         //Update version number
-        "INSERT INTO version (version, execute_date) VALUES(1, datetime('now','UTC'));"
+        "INSERT INTO version (v, execute_date) VALUES(1, datetime('now','UTC'));"
     ];
 
     var VERSION_2 = [
@@ -57,10 +59,11 @@ $(document).ready(function(){
                 }
             }
 
-            tx.executeSql('SELECT count(name) FROM sqlite_master where name=\'version\';', [], function(err,data){
+            tx.executeSql('SELECT count(name) as num FROM sqlite_master where name=\'version\';', [], function(err,data){
                 var versions = VERSIONS;
+                console.log('Version table check '+JSON.stringify(data.rows.item(0))+' : '+data.rows.item(0).num);
                 //Is Version table available?
-                if(data.rows.item(0) === 0){
+                if(data.rows.item(0).num === 0){
                     console.log('No version table');
                     //No, create version table
                     versions = [[CREATE_VERSION]].concat(VERSIONS);
@@ -69,9 +72,9 @@ $(document).ready(function(){
                     console.log('Version table available');
                     //Select last version updated
                     tx.executeSql(SELECT_VERSION, [], function(error, innerData){
-                        console.log('Inner data is :'+ (innerData.rows.item(0).version || 0));
+                        console.log('Inner data is :::'+ JSON.stringify(innerData.rows.item(0)) + ' : '+(innerData.rows.item(0).v || 0));
                         //Execute all queries and sync it
-                        updateStructure(innerData.rows.item(0).version || 0, VERSIONS);
+                        updateStructure(innerData.rows.item(0).v || 0, VERSIONS);
                     });
                 }
             }, function(error){
