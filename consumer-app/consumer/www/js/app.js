@@ -50,31 +50,3 @@ var $_apna = {
 
 $_apna.initialize();
 
-$(document).ready(function(){
-
-    //Wait for consumer available
-	var consumerReady = false;
-	$(document).on('apna:ConsumerReady', function(){
-		console.log('Consumer ready...');
-		consumerReady = true;
-		publish();
-	});
-
-	//Wait for database available
-	var databaseReady = false;
-	$(document).on('apna:DatabaseReady', function(){
-		console.log('DB ready...');
-		databaseReady = true;
-		publish();
-	});
-
-    var publishNotCalled = true;
-	function publish(){
-		//Got all the required resources to start my application
-		if(publishNotCalled && consumerReady && databaseReady){
-			console.log('Apna Bag Read...22');
-            publishNotCalled = false;
-			$(document).trigger('apna:ApnaBagReady');
-		}
-	}
-});
